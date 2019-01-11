@@ -14,17 +14,21 @@ def load_dataset(imu_data_filename, gt_data_filename, window_size = 200, stride 
 
     l0 = loc_data[int(window_size/2) - int(stride/2) - stride, :]    
     l1 = loc_data[int(window_size/2) - int(stride/2), :]
-    delta_l = l1 - l0
-    psi0 = np.arctan2(delta_l[1], delta_l[0])
+    l_diff = l1 - l0
+    psi0 = np.arctan2(l_diff[1], l_diff[0])
+
+    init_l = l1
+    init_psi = psi0
 
     for idx in range(0, gyro_acc_data.shape[0] - window_size, stride):
-        x.append(gyro_acc_data[idx : idx + window_size])
+        x.append(gyro_acc_data[idx : idx + window_size, :])
 
         l0 = loc_data[idx + int(window_size/2) - int(stride/2), :]
         l1 = loc_data[idx + int(window_size/2) + int(stride/2), :]
 
-        delta_l = l1 - l0
-        psi1 = np.arctan2(delta_l[1], delta_l[0])
+        l_diff = l1 - l0
+        psi1 = np.arctan2(l_diff[1], l_diff[0])
+        delta_l = np.linalg.norm(l_diff)
         delta_psi = psi1 - psi0
 
         if delta_psi < -np.pi:
@@ -36,4 +40,7 @@ def load_dataset(imu_data_filename, gt_data_filename, window_size = 200, stride 
 
         psi0 = psi1
 
-    return x, y
+    x = np.reshape(x, (len(x), x[0].shape[0], x[0].shape[1]))
+    y = np.reshape(y, (len(y), y[0].shape[0]))
+
+    return x, y, init_l, init_psi
