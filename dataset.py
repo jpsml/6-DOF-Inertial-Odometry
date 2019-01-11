@@ -11,7 +11,9 @@ def load_dataset(imu_data_filename, gt_data_filename, window_size=200, stride=10
     loc_data = gt_data[:, 2:4]
 
     x = []
-    y = []
+    #y = []
+    y_delta_l = []
+    y_delta_psi = []
 
     l0 = loc_data[window_size // 2 - stride // 2 - stride, :]    
     l1 = loc_data[window_size // 2 - stride // 2, :]
@@ -37,14 +39,19 @@ def load_dataset(imu_data_filename, gt_data_filename, window_size=200, stride=10
         elif delta_psi > np.pi:
             delta_psi -= 2 * np.pi
 
-        y.append(np.array([delta_l, delta_psi]))
+        #y.append(np.array([delta_l, delta_psi]))        
+        y_delta_l.append(np.array([delta_l]))
+        y_delta_psi.append(np.array([delta_psi]))
 
         psi0 = psi1
 
     x = np.reshape(x, (len(x), x[0].shape[0], x[0].shape[1]))
-    y = np.reshape(y, (len(y), y[0].shape[0]))
+    #y = np.reshape(y, (len(y), y[0].shape[0]))
+    y_delta_l = np.reshape(y_delta_l, (len(y_delta_l), y_delta_l[0].shape[0]))
+    y_delta_psi = np.reshape(y_delta_psi, (len(y_delta_psi), y_delta_psi[0].shape[0]))
 
-    return x, y, init_l, init_psi
+    #return x, y, init_l, init_psi
+    return x, [y_delta_l, y_delta_psi], init_l, init_psi
 
 
 def train_data_generator(x, y, batch_size=32):
