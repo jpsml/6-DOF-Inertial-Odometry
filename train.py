@@ -59,6 +59,24 @@ model = load_model('bidirectional_lstm.hdf5')
 
 [yhat_delta_l, yhat_delta_psi] = model.predict(x, batch_size=1, verbose=1)
 
+plt.figure()
+plt.plot(y_delta_l)
+plt.plot(yhat_delta_l)
+plt.title('Delta L Pred vs Ground Truth')
+plt.ylabel('Delta L (m)')
+plt.xlabel('Time (0.1s)')
+plt.legend(['Delta L Pred', 'Delta L Ground Truth'], loc='upper left')
+
+plt.figure()
+plt.plot(y_delta_psi)
+plt.plot(yhat_delta_psi)
+plt.title('Delta Psi Pred vs Ground Truth')
+plt.ylabel('Delta Psi (rad)')
+plt.xlabel('Time (0.1s)')
+plt.legend(['Delta Psi Pred', 'Delta Psi Ground Truth'], loc='upper left')
+
+plt.show()
+
 cur_l = init_l
 cur_psi = init_psi
 pred_l = []
