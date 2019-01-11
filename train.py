@@ -10,7 +10,7 @@ from model import *
 #x, y, init_l, init_psi = load_dataset('Oxford Inertial Tracking Dataset/handheld/data1/syn/imu1.csv', 'Oxford Inertial Tracking Dataset/handheld/data1/syn/vi1.csv')
 x, [y_delta_l, y_delta_psi], init_l, init_psi = load_dataset('Oxford Inertial Tracking Dataset/handheld/data1/syn/imu1.csv', 'Oxford Inertial Tracking Dataset/handheld/data1/syn/vi1.csv')
 
-do_training = True
+do_training = False
 
 print('x[0, :]: ', x[0, :])
 #print('y[0, :]: ', y[0, :])
@@ -71,6 +71,7 @@ pred_l.append(np.array(cur_l))
 
 #for [delta_l, delta_psi] in zip(y_delta_l, y_delta_psi):
 for [delta_l, delta_psi] in zip(yhat_delta_l, yhat_delta_psi):
+#for [delta_l, delta_psi] in zip(yhat_delta_l, y_delta_psi):
     cur_psi = cur_psi + delta_psi
     cur_l[0] = cur_l[0] + delta_l * np.cos(cur_psi)
     cur_l[1] = cur_l[1] + delta_l * np.sin(cur_psi)
