@@ -7,8 +7,9 @@ def create_model(window_size = 200):
     model = Sequential()
 
     model.add(Bidirectional(CuDNNLSTM(96, return_sequences=True), input_shape=(window_size, 6)))
+    #model.add(Dropout(0.25))
     model.add(Bidirectional(CuDNNLSTM(96)))
-    model.add(Dropout(0.25))
+    #model.add(Dropout(0.25))
     model.add(Dense(2))
 
     model.summary()
