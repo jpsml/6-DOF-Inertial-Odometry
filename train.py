@@ -7,6 +7,26 @@ from keras.models import load_model
 from dataset import *
 from model import *
 
+#def generate_tajectory(init_l, init_psi, y):
+def generate_tajectory(init_l, init_psi, y_delta_l, y_delta_psi):
+	cur_l = init_l
+	cur_psi = init_psi
+	pred_l = []
+	pred_l.append(np.array(cur_l))
+
+	#for delta_l_psi in y:
+	#    delta_l = delta_l_psi[0]
+	#    delta_psi = delta_l_psi[1]
+
+	for [delta_l, delta_psi] in zip(y_delta_l, y_delta_psi):
+	    cur_psi = cur_psi + delta_psi
+	    cur_l[0] = cur_l[0] + delta_l * np.cos(cur_psi)
+	    cur_l[1] = cur_l[1] + delta_l * np.sin(cur_psi)
+	    pred_l.append(np.array(cur_l))
+
+	return np.reshape(pred_l, (len(pred_l), 2))
+
+
 #x, y, init_l, init_psi = load_dataset('Oxford Inertial Tracking Dataset/handheld/data1/syn/imu1.csv', 'Oxford Inertial Tracking Dataset/handheld/data1/syn/vi1.csv')
 x, [y_delta_l, y_delta_psi], init_l, init_psi = load_dataset('Oxford Inertial Tracking Dataset/handheld/data1/syn/imu1.csv', 'Oxford Inertial Tracking Dataset/handheld/data1/syn/vi1.csv')
 
@@ -59,13 +79,17 @@ model = load_model('bidirectional_lstm.hdf5')
 
 [yhat_delta_l, yhat_delta_psi] = model.predict(x, batch_size=1, verbose=1)
 
+gt_trajectory = generate_tajectory(init_l, init_psi, y_delta_l, y_delta_psi)
+#pred_trajectory = generate_tajectory(init_l, init_psi, yhat_delta_l, yhat_delta_psi)
+pred_trajectory = generate_tajectory(init_l, init_psi, y_delta_l, yhat_delta_psi)
+
 plt.figure()
 plt.plot(y_delta_l)
 plt.plot(yhat_delta_l)
 plt.title('Delta L Pred vs Ground Truth')
 plt.ylabel('Delta L (m)')
 plt.xlabel('Time (0.1s)')
-plt.legend(['Delta L Pred', 'Delta L Ground Truth'], loc='upper left')
+plt.legend(['Delta L Ground Truth', 'Delta L Pred'], loc='upper left')
 
 plt.figure()
 plt.plot(y_delta_psi)
@@ -73,26 +97,15 @@ plt.plot(yhat_delta_psi)
 plt.title('Delta Psi Pred vs Ground Truth')
 plt.ylabel('Delta Psi (rad)')
 plt.xlabel('Time (0.1s)')
-plt.legend(['Delta Psi Pred', 'Delta Psi Ground Truth'], loc='upper left')
+plt.legend(['Delta Psi Ground Truth', 'Delta Psi Pred'], loc='upper left')
 
+plt.figure()
+plt.plot(gt_trajectory[:, 0], gt_trajectory[:, 1])
+plt.plot(pred_trajectory[:, 0], pred_trajectory[:, 1])
+plt.title('Trajectory Pred vs Ground Truth')
+plt.ylabel('Y (m)')
+plt.xlabel('X (m)')
+plt.legend(['Trajectory Ground Truth', 'Trajectory Pred'], loc='upper left')
 plt.show()
 
-cur_l = init_l
-cur_psi = init_psi
-pred_l = []
-pred_l.append(np.array(cur_l))
-
-#for delta_l_psi in y:
-#for delta_l_psi in yhat:
-#    delta_l = delta_l_psi[0]
-#    delta_psi = delta_l_psi[1]
-
-#for [delta_l, delta_psi] in zip(y_delta_l, y_delta_psi):
-for [delta_l, delta_psi] in zip(yhat_delta_l, yhat_delta_psi):
-#for [delta_l, delta_psi] in zip(yhat_delta_l, y_delta_psi):
-    cur_psi = cur_psi + delta_psi
-    cur_l[0] = cur_l[0] + delta_l * np.cos(cur_psi)
-    cur_l[1] = cur_l[1] + delta_l * np.sin(cur_psi)
-    pred_l.append(np.array(cur_l))
-
-np.savetxt('pred_positions.txt', pred_l, delimiter=' ')
+np.savetxt('pred_positions.txt', pred_trajectory, delimiter=' ')
