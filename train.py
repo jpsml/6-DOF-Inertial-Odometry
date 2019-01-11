@@ -9,12 +9,7 @@ from model import *
 
 x, y, init_l, init_psi = load_dataset('Oxford Inertial Tracking Dataset/handheld/data1/syn/imu1.csv', 'Oxford Inertial Tracking Dataset/handheld/data1/syn/vi1.csv')
 
-#batch_size = 512
-batch_size = 32
-
 do_training = True
-
-my_train_data_generator = train_data_generator(x, y, batch_size)
 
 print('x[0, :]: ', x[0, :])
 print('y[0, :]: ', y[0, :])
@@ -27,15 +22,12 @@ print('min delta_l: ', np.amin(y[:, 0]))
 print('max delta_psi: ', np.amax(y[:, 1]))
 print('min delta_psi: ', np.amin(y[:, 1]))
 
-steps = np.ceil(float(x.shape[0]) / batch_size)
-
 if do_training:
 	model = create_model()
 
-	model_checkpoint = ModelCheckpoint('bidirectional_lstm.hdf5', verbose=1)
+	model_checkpoint = ModelCheckpoint('bidirectional_lstm.hdf5', monitor='loss', save_best_only=True, verbose=1)
 
-	history = model.fit(x, y, epochs=100, verbose=1, callbacks=[model_checkpoint], shuffle=False)
-	#history = model.fit_generator(my_train_data_generator, steps_per_epoch=steps, epochs=100, verbose=1, callbacks=[model_checkpoint])
+	history = model.fit(x, y, batch_size=1, epochs=100, verbose=1, callbacks=[model_checkpoint], shuffle=False)
 
 	plt.plot(history.history['loss'])
 	plt.title('Model loss')
@@ -45,12 +37,7 @@ if do_training:
 else:
 	model = load_model('bidirectional_lstm.hdf5')
 
-my_test_data_generator = test_data_generator(x, batch_size)
-
-yhat = model.predict(x, verbose=1)
-#yhat = model.predict_generator(my_test_data_generator, steps=steps, verbose=1)
-
-print('yhat.shape: ', yhat.shape)
+yhat = model.predict(x, batch_size=1, verbose=1)
 
 cur_l = init_l
 cur_psi = init_psi
