@@ -1,3 +1,4 @@
+import numpy as np
 import matplotlib.pyplot as plt
 
 from keras.callbacks import ModelCheckpoint
@@ -22,7 +23,7 @@ model = create_model()
 
 model_checkpoint = ModelCheckpoint('bidirectional_lstm.hdf5', verbose=1)
 
-history = model.fit(x, y, batch_size=1, epochs=100, verbose=1, callbacks=[model_checkpoint], shuffle=False)
+history = model.fit(x, y, epochs=100, verbose=1, callbacks=[model_checkpoint], shuffle=False)
 
 plt.plot(history.history['loss'])
 plt.title('Model loss')
@@ -30,7 +31,7 @@ plt.ylabel('Loss')
 plt.xlabel('Epoch')
 plt.show()
 
-yhat = model.predict(x, batch_size=1, verbose=1)
+yhat = model.predict(x, verbose=1)
 
 cur_l = init_l
 cur_psi = init_psi
