@@ -8,6 +8,10 @@ from model import *
 
 x, y, init_l, init_psi = load_dataset('Oxford Inertial Tracking Dataset/handheld/data1/syn/imu1.csv', 'Oxford Inertial Tracking Dataset/handheld/data1/syn/vi1.csv')
 
+batch_size = 32
+
+my_train_data_generator = train_data_generator(x, y, batch_size)
+
 print('x[0, :]: ', x[0, :])
 print('y[0, :]: ', y[0, :])
 
@@ -23,7 +27,8 @@ model = create_model()
 
 model_checkpoint = ModelCheckpoint('bidirectional_lstm.hdf5', verbose=1)
 
-history = model.fit(x, y, epochs=100, verbose=1, callbacks=[model_checkpoint], shuffle=False)
+#history = model.fit(x, y, epochs=100, verbose=1, callbacks=[model_checkpoint], shuffle=False)
+history = model.fit_generator(my_train_data_generator, steps_per_epoch = np.ceil(x.shape[0] / batch_size), epochs=100, verbose=1, callbacks=[model_checkpoint])
 
 plt.plot(history.history['loss'])
 plt.title('Model loss')
@@ -31,7 +36,9 @@ plt.ylabel('Loss')
 plt.xlabel('Epoch')
 plt.show()
 
-yhat = model.predict(x, verbose=1)
+my_test_data_generator = test_data_generator(x, batch_size)
+
+yhat = model.predict_generator(my_test_data_generator, verbose=1)
 
 cur_l = init_l
 cur_psi = init_psi
