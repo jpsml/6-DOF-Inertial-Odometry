@@ -39,7 +39,7 @@ x, [y_delta_l, y_delta_psi], init_l, init_psi = load_dataset('Oxford Inertial Tr
 
 #y_delta_psi = y_delta_psi / np.pi
 
-do_training = False
+do_training = True
 
 print('x[0, :]: ', x[0, :])
 #print('y[0, :]: ', y[0, :])
@@ -87,7 +87,9 @@ if do_training:
 model = load_model('bidirectional_lstm.hdf5')
 
 [yhat_delta_l, yhat_delta_psi] = model.predict(x, batch_size=1, verbose=1)
+
 #yhat_delta_psi = model.predict(x, batch_size=1, verbose=1)
+#yhat_delta_l = y_delta_l
 
 plt.figure()
 plt.plot(y_delta_l)
@@ -121,20 +123,20 @@ print('init_psi: ', init_psi)
 pred_trajectory_only_l = generate_tajectory(init_l, init_psi, yhat_delta_l, y_delta_psi)
 
 plt.figure()
-#plt.plot(gt_trajectory[:, 0], gt_trajectory[:, 1])
-#plt.plot(pred_trajectory[:, 0], pred_trajectory[:, 1])
-plt.plot(gt_trajectory[0:200, 0], gt_trajectory[0:200, 1])
-plt.plot(pred_trajectory[0:200, 0], pred_trajectory[0:200, 1])
+plt.plot(gt_trajectory[:, 0], gt_trajectory[:, 1])
+plt.plot(pred_trajectory[:, 0], pred_trajectory[:, 1])
+#plt.plot(gt_trajectory[0:200, 0], gt_trajectory[0:200, 1])
+#plt.plot(pred_trajectory[0:200, 0], pred_trajectory[0:200, 1])
 plt.title('Trajectory Pred vs Ground Truth')
 plt.ylabel('Y (m)')
 plt.xlabel('X (m)')
 plt.legend(['Trajectory Ground Truth', 'Trajectory Pred'], loc='upper left')
 
 plt.figure()
-#plt.plot(gt_trajectory[:, 0], gt_trajectory[:, 1])
-#plt.plot(pred_trajectory_only_l[:, 0], pred_trajectory_only_l[:, 1])
-plt.plot(gt_trajectory[0:200, 0], gt_trajectory[0:200, 1])
-plt.plot(pred_trajectory_only_l[0:200, 0], pred_trajectory_only_l[0:200, 1])
+plt.plot(gt_trajectory[:, 0], gt_trajectory[:, 1])
+plt.plot(pred_trajectory_only_l[:, 0], pred_trajectory_only_l[:, 1])
+#plt.plot(gt_trajectory[0:200, 0], gt_trajectory[0:200, 1])
+#plt.plot(pred_trajectory_only_l[0:200, 0], pred_trajectory_only_l[0:200, 1])
 plt.title('Trajectory Pred Only Delta L vs Ground Truth')
 plt.ylabel('Y (m)')
 plt.xlabel('X (m)')
