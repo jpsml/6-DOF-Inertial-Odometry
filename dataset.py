@@ -25,6 +25,7 @@ def load_dataset(imu_data_filename, gt_data_filename, window_size=200, stride=10
 
     for idx in range(0, gyro_acc_data.shape[0] - window_size, stride):
         x.append(gyro_acc_data[idx : idx + window_size, :])
+        #x.append(gyro_acc_data[idx : idx + window_size, 0:3])
 
         l0 = loc_data[idx + window_size // 2 - stride // 2, :]
         l1 = loc_data[idx + window_size // 2 + stride // 2, :]
@@ -52,6 +53,7 @@ def load_dataset(imu_data_filename, gt_data_filename, window_size=200, stride=10
 
     #return x, y, init_l, init_psi
     return x, [y_delta_l, y_delta_psi], init_l, init_psi
+    #return x, y_delta_psi, init_l, init_psi
 
 
 def train_data_generator(x, y, batch_size=32):
