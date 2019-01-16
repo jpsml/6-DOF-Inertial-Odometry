@@ -7,16 +7,11 @@ from keras.models import load_model
 from dataset import *
 from model import *
 
-#def generate_tajectory(init_l, init_psi, y):
-def generate_tajectory(init_l, init_psi, y_delta_l, y_delta_psi):
+def generate_trajectory(init_l, init_psi, y_delta_l, y_delta_psi):
 	cur_l = np.array(init_l)
 	cur_psi = np.array(init_psi)
 	pred_l = []
 	pred_l.append(np.array(cur_l))
-
-	#for delta_l_psi in y:
-	#    delta_l = delta_l_psi[0]
-	#    delta_psi = delta_l_psi[1]
 
 	for [delta_l, delta_psi] in zip(y_delta_l, y_delta_psi):
 	    cur_psi = cur_psi + delta_psi
@@ -32,54 +27,24 @@ np.random.seed(0)
 window_size = 200
 stride = 10
 
-#x, y, init_l, init_psi = load_dataset('Oxford Inertial Tracking Dataset/handheld/data1/syn/imu1.csv', 'Oxford Inertial Tracking Dataset/handheld/data1/syn/vi1.csv')
+# TODO: load several datasets for training
+#x = []
+#y_delta_l = []
+#y_delta_psi = []
+#datasets_paths = 
 
 x, [y_delta_l, y_delta_psi], init_l, init_psi = load_dataset('Oxford Inertial Tracking Dataset/handheld/data1/syn/imu1.csv', 'Oxford Inertial Tracking Dataset/handheld/data1/syn/vi1.csv', window_size, stride)
 
-#x, y_delta_psi, init_l, init_psi = load_dataset('Oxford Inertial Tracking Dataset/handheld/data1/syn/imu1.csv', 'Oxford Inertial Tracking Dataset/handheld/data1/syn/vi1.csv')
-#y_delta_l = np.genfromtxt('y_delta_l.txt', delimiter=' ')
-#y_delta_l = np.reshape(y_delta_l, (y_delta_l.shape[0], 1))
 
-#y_delta_psi = y_delta_psi / np.pi
 
 do_training = True
-
-print('x[0, :]: ', x[0, :])
-#print('y[0, :]: ', y[0, :])
-print('y_delta_l[0, :]: ', y_delta_l[0, :])
-print('y_delta_psi[0, :]: ', y_delta_psi[0, :])
-
-print('x[1, :]: ', x[1, :])
-#print('y[1, :]: ', y[1, :])
-print('y_delta_l[1, :]: ', y_delta_l[1, :])
-print('y_delta_psi[1, :]: ', y_delta_psi[1, :])
-
-#max_delta_l = np.amax(y[:, 0])
-#min_delta_l = np.amin(y[:, 0])
-#max_delta_psi = np.amax(y[:, 1])
-#in_delta_psi = np.amin(y[:, 1])
-
-max_delta_l = np.amax(y_delta_l[:, 0])
-min_delta_l = np.amin(y_delta_l[:, 0])
-max_delta_psi = np.amax(y_delta_psi[:, 0])
-min_delta_psi = np.amin(y_delta_psi[:, 0])
-
-print('max_delta_l: ', max_delta_l)
-print('min_delta_l: ', min_delta_l)
-print('max_delta_psi: ', max_delta_psi)
-print('min_delta_psi: ', min_delta_psi)
-
-scale_factor = (max_delta_l - min_delta_l) / (max_delta_psi - min_delta_psi)
-print('scale_factor: ', scale_factor)
 
 if do_training:
 	model = create_model(window_size)
 
 	model_checkpoint = ModelCheckpoint('bidirectional_lstm.hdf5', monitor='loss', save_best_only=True, verbose=1)
 
-	#history = model.fit(x, y, epochs=100, verbose=1, callbacks=[model_checkpoint], shuffle=False)
 	history = model.fit(x, [y_delta_l, y_delta_psi], epochs=1000, verbose=1, callbacks=[model_checkpoint], shuffle=False)
-	#history = model.fit(x, y_delta_psi, epochs=100, verbose=1, callbacks=[model_checkpoint], shuffle=False)
 
 	plt.plot(history.history['loss'])
 	plt.title('Model loss')
@@ -89,16 +54,9 @@ if do_training:
 
 model = load_model('bidirectional_lstm.hdf5')
 
-#yhat = model.predict(x, batch_size=1, verbose=1)
-
 [yhat_delta_l, yhat_delta_psi] = model.predict(x, batch_size=1, verbose=1)
 
-#yhat_delta_psi = model.predict(x, batch_size=1, verbose=1)
-#yhat_delta_l = y_delta_l
-
 plt.figure()
-#plt.plot(y[:, 0])
-#plt.plot(yhat[:, 0])
 plt.plot(y_delta_l)
 plt.plot(yhat_delta_l)
 plt.title('Delta L Pred vs Ground Truth')
@@ -107,8 +65,6 @@ plt.xlabel('Time (0.1s)')
 plt.legend(['Delta L Ground Truth', 'Delta L Pred'], loc='upper left')
 
 plt.figure()
-#plt.plot(y[:, 1])
-#plt.plot(yhat[:, 1])
 plt.plot(y_delta_psi)
 plt.plot(yhat_delta_psi)
 plt.title('Delta Psi Pred vs Ground Truth')
@@ -117,17 +73,15 @@ plt.xlabel('Time (0.1s)')
 plt.legend(['Delta Psi Ground Truth', 'Delta Psi Pred'], loc='upper left')
 plt.show()
 
-##yhat_delta_psi = yhat_delta_psi * np.pi
+gt_trajectory = generate_trajectory(init_l, init_psi, y_delta_l, y_delta_psi)
+pred_trajectory = generate_trajectory(init_l, init_psi, yhat_delta_l, yhat_delta_psi)
+pred_trajectory_only_l = generate_trajectory(init_l, init_psi, yhat_delta_l, y_delta_psi)
+pred_trajectory_only_psi = generate_trajectory(init_l, init_psi, y_delta_l, yhat_delta_psi)
 
-#gt_trajectory = generate_tajectory(init_l, init_psi, y_delta_l, y_delta_psi)
-#pred_trajectory = generate_tajectory(init_l, init_psi, yhat_delta_l, yhat_delta_psi)
-#pred_trajectory_only_l = generate_tajectory(init_l, init_psi, yhat_delta_l, y_delta_psi)
-#pred_trajectory_only_psi = generate_tajectory(init_l, init_psi, y_delta_l, yhat_delta_psi)
-
-gt_trajectory = generate_tajectory(init_l, init_psi, y_delta_l[::20], y_delta_psi[::20])
-pred_trajectory = generate_tajectory(init_l, init_psi, yhat_delta_l[::20], yhat_delta_psi[::20])
-pred_trajectory_only_l = generate_tajectory(init_l, init_psi, yhat_delta_l[::20], y_delta_psi[::20])
-pred_trajectory_only_psi = generate_tajectory(init_l, init_psi, y_delta_l[::20], yhat_delta_psi[::20])
+#gt_trajectory = generate_trajectory(init_l, init_psi, y_delta_l[::20], y_delta_psi[::20])
+#pred_trajectory = generate_trajectory(init_l, init_psi, yhat_delta_l[::20], yhat_delta_psi[::20])
+#pred_trajectory_only_l = generate_trajectory(init_l, init_psi, yhat_delta_l[::20], y_delta_psi[::20])
+#pred_trajectory_only_psi = generate_trajectory(init_l, init_psi, y_delta_l[::20], yhat_delta_psi[::20])
 
 plt.figure()
 plt.plot(gt_trajectory[:, 0], gt_trajectory[:, 1])
