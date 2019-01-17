@@ -86,8 +86,23 @@ gt_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data5/syn/vi
 gt_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data5/syn/vi3.csv')
 gt_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data5/syn/vi4.csv')
 
-for (cur_imu_data_filename, cur_gt_data_filename) in zip(imu_data_filenames, gt_data_filenames):
+for i, (cur_imu_data_filename, cur_gt_data_filename) in enumerate(zip(imu_data_filenames, gt_data_filenames)):
     cur_x, [cur_y_delta_l, cur_y_delta_psi], init_l, init_psi = load_dataset(cur_imu_data_filename, cur_gt_data_filename, window_size, stride)
+
+    #plt.figure()
+    #plt.plot(cur_y_delta_l)
+    #plt.title('Delta L ' + str(i))
+    #plt.ylabel('m')
+    #plt.xlabel('time (0.1s)')
+
+    #plt.figure()
+    #plt.plot(cur_y_delta_psi)
+    #plt.title('Delta Psi ' + str(i))
+    #plt.ylabel('rad')
+    #plt.xlabel('time (0.1s)')
+
+    #plt.show()
+
     x.append(cur_x)
     y_delta_l.append(cur_y_delta_l)
     y_delta_psi.append(cur_y_delta_psi)
@@ -106,7 +121,7 @@ if do_training:
 	#model_checkpoint = ModelCheckpoint('bidirectional_lstm.hdf5', monitor='loss', save_best_only=True, verbose=1)
 	model_checkpoint = ModelCheckpoint('bidirectional_lstm.hdf5', monitor='val_loss', save_best_only=True, verbose=1)
 
-	history = model.fit(x, [y_delta_l, y_delta_psi], epochs=500, batch_size=512, verbose=1, callbacks=[model_checkpoint], validation_split=0.1)
+	history = model.fit(x, [y_delta_l, y_delta_psi], epochs=400, batch_size=512, verbose=1, callbacks=[model_checkpoint], validation_split=0.1)
 
 	#plt.plot(history.history['loss'])
 	#plt.title('Model loss')

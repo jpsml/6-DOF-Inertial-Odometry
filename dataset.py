@@ -6,8 +6,8 @@ def load_dataset(imu_data_filename, gt_data_filename, window_size=200, stride=10
     imu_data = np.genfromtxt(imu_data_filename, delimiter=',')
     gt_data = np.genfromtxt(gt_data_filename, delimiter=',')
 
-    imu_data = imu_data[500:]
-    gt_data = gt_data[500:]
+    imu_data = imu_data[1200:-300]
+    gt_data = gt_data[1200:-300]
     
     gyro_acc_data = np.concatenate([imu_data[:, 4:7], imu_data[:, 10:13]], axis=1)
     
