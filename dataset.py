@@ -5,16 +5,22 @@ def load_dataset(imu_data_filename, gt_data_filename, window_size=200, stride=10
 
     imu_data = np.genfromtxt(imu_data_filename, delimiter=',')
     gt_data = np.genfromtxt(gt_data_filename, delimiter=',')
+
+    imu_data = imu_data[500:]
+    gt_data = gt_data[500:]
     
     gyro_acc_data = np.concatenate([imu_data[:, 4:7], imu_data[:, 10:13]], axis=1)
     
     loc_data = gt_data[:, 2:4]
 
-    l0 = loc_data[0, :]
-    l1 = loc_data[window_size, :]
+    #l0 = loc_data[0, :]
+    #l1 = loc_data[window_size, :]
 
     #l0 = loc_data[window_size - stride - stride, :]
     #l1 = loc_data[window_size - stride, :]
+
+    l0 = loc_data[window_size//2 - stride//2 - stride, :]
+    l1 = loc_data[window_size//2 - stride//2, :]
     
     l_diff = l1 - l0
     psi0 = np.arctan2(l_diff[1], l_diff[0])
@@ -26,21 +32,25 @@ def load_dataset(imu_data_filename, gt_data_filename, window_size=200, stride=10
     y_delta_psi = []
 
     #for idx in range(stride, gyro_acc_data.shape[0] - window_size - 1, stride):
-    for idx in range(window_size, gyro_acc_data.shape[0] - window_size - 1, stride):
-    #for idx in range(0, gyro_acc_data.shape[0] - window_size - 1, stride):
+    #for idx in range(window_size, gyro_acc_data.shape[0] - window_size - 1, stride):
+    for idx in range(0, gyro_acc_data.shape[0] - window_size - 1, stride):
         x.append(gyro_acc_data[idx + 1 : idx + 1 + window_size, :])
 
         #l0_diff = loc_data[idx, :] - loc_data[idx - stride, :]
-        l0_diff = loc_data[idx, :] - loc_data[idx - window_size, :]
+        #l0_diff = loc_data[idx, :] - loc_data[idx - window_size, :]
         #l0_diff = loc_data[idx + window_size - stride, :] - loc_data[idx + window_size - stride - stride, :]
+        l0_diff = loc_data[idx + window_size//2 - stride//2, :] - loc_data[idx + window_size//2 - stride//2 - stride, :]
         psi0 = np.arctan2(l0_diff[1], l0_diff[0])
 
-        l0 = loc_data[idx, :]
+        #l0 = loc_data[idx, :]
         #l0 = loc_data[idx + window_size - stride, :]
-        l1 = loc_data[idx + window_size, :]
+        #l1 = loc_data[idx + window_size, :]
 
         #l0 = loc_data[idx, :]
         #l1 = loc_data[idx + stride, :]
+
+        l0 = loc_data[idx + window_size//2 - stride//2, :]
+        l1 = loc_data[idx + window_size//2 + stride//2, :]
 
         l_diff = l1 - l0
         psi1 = np.arctan2(l_diff[1], l_diff[0])
