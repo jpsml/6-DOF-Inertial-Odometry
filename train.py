@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 from keras.callbacks import ModelCheckpoint
 from keras.models import load_model
 
+from sklearn.utils import shuffle
+
 from dataset import *
 from model import *
 
@@ -27,15 +29,74 @@ np.random.seed(0)
 window_size = 200
 stride = 10
 
-# TODO: load several datasets for training
-#x = []
-#y_delta_l = []
-#y_delta_psi = []
-#datasets_paths = 
+x = []
+y_delta_l = []
+y_delta_psi = []
 
-x, [y_delta_l, y_delta_psi], init_l, init_psi = load_dataset('Oxford Inertial Tracking Dataset/handheld/data1/syn/imu1.csv', 'Oxford Inertial Tracking Dataset/handheld/data1/syn/vi1.csv', window_size, stride)
+imu_data_filenames = []
+gt_data_filenames = []
 
+imu_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data1/syn/imu1.csv')
+imu_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data1/syn/imu2.csv')
+imu_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data1/syn/imu3.csv')
+imu_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data1/syn/imu4.csv')
+imu_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data1/syn/imu5.csv')
+imu_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data1/syn/imu6.csv')
+imu_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data1/syn/imu7.csv')
+imu_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data2/syn/imu1.csv')
+imu_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data2/syn/imu2.csv')
+imu_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data2/syn/imu3.csv')
+imu_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data3/syn/imu1.csv')
+imu_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data3/syn/imu2.csv')
+imu_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data3/syn/imu3.csv')
+imu_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data3/syn/imu4.csv')
+imu_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data3/syn/imu5.csv')
+imu_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data4/syn/imu1.csv')
+imu_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data4/syn/imu2.csv')
+imu_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data4/syn/imu3.csv')
+imu_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data4/syn/imu4.csv')
+imu_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data4/syn/imu5.csv')
+imu_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data5/syn/imu1.csv')
+imu_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data5/syn/imu2.csv')
+imu_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data5/syn/imu3.csv')
+imu_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data5/syn/imu4.csv')
 
+gt_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data1/syn/vi1.csv')
+gt_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data1/syn/vi2.csv')
+gt_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data1/syn/vi3.csv')
+gt_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data1/syn/vi4.csv')
+gt_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data1/syn/vi5.csv')
+gt_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data1/syn/vi6.csv')
+gt_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data1/syn/vi7.csv')
+gt_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data2/syn/vi1.csv')
+gt_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data2/syn/vi2.csv')
+gt_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data2/syn/vi3.csv')
+gt_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data3/syn/vi1.csv')
+gt_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data3/syn/vi2.csv')
+gt_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data3/syn/vi3.csv')
+gt_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data3/syn/vi4.csv')
+gt_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data3/syn/vi5.csv')
+gt_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data4/syn/vi1.csv')
+gt_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data4/syn/vi2.csv')
+gt_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data4/syn/vi3.csv')
+gt_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data4/syn/vi4.csv')
+gt_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data4/syn/vi5.csv')
+gt_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data5/syn/vi1.csv')
+gt_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data5/syn/vi2.csv')
+gt_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data5/syn/vi3.csv')
+gt_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data5/syn/vi4.csv')
+
+for (cur_imu_data_filename, cur_gt_data_filename) in zip(imu_data_filenames, gt_data_filenames):
+    cur_x, [cur_y_delta_l, cur_y_delta_psi], init_l, init_psi = load_dataset(cur_imu_data_filename, cur_gt_data_filename, window_size, stride)
+    x.append(cur_x)
+    y_delta_l.append(cur_y_delta_l)
+    y_delta_psi.append(cur_y_delta_psi)
+
+x = np.vstack(x)
+y_delta_l = np.vstack(y_delta_l)
+y_delta_psi = np.vstack(y_delta_psi)
+
+x, y_delta_l, y_delta_psi = shuffle(x, y_delta_l, y_delta_psi)
 
 do_training = True
 
@@ -44,7 +105,7 @@ if do_training:
 
 	model_checkpoint = ModelCheckpoint('bidirectional_lstm.hdf5', monitor='loss', save_best_only=True, verbose=1)
 
-	history = model.fit(x, [y_delta_l, y_delta_psi], epochs=1000, verbose=1, callbacks=[model_checkpoint], shuffle=False)
+	history = model.fit(x, [y_delta_l, y_delta_psi], epochs=1000, verbose=1, callbacks=[model_checkpoint], validation_split=0.1)
 
 	plt.plot(history.history['loss'])
 	plt.title('Model loss')
@@ -53,6 +114,8 @@ if do_training:
 	plt.show()
 
 model = load_model('bidirectional_lstm.hdf5')
+
+x, [y_delta_l, y_delta_psi], init_l, init_psi = load_dataset('Oxford Inertial Tracking Dataset/multi users/user2/syn/imu1.csv', 'Oxford Inertial Tracking Dataset/multi users/user2/syn/vi1.csv', window_size, stride)
 
 [yhat_delta_l, yhat_delta_psi] = model.predict(x, batch_size=1, verbose=1)
 
@@ -73,15 +136,15 @@ plt.xlabel('Time (0.1s)')
 plt.legend(['Delta Psi Ground Truth', 'Delta Psi Pred'], loc='upper left')
 plt.show()
 
-gt_trajectory = generate_trajectory(init_l, init_psi, y_delta_l, y_delta_psi)
-pred_trajectory = generate_trajectory(init_l, init_psi, yhat_delta_l, yhat_delta_psi)
-pred_trajectory_only_l = generate_trajectory(init_l, init_psi, yhat_delta_l, y_delta_psi)
-pred_trajectory_only_psi = generate_trajectory(init_l, init_psi, y_delta_l, yhat_delta_psi)
+#gt_trajectory = generate_trajectory(init_l, init_psi, y_delta_l, y_delta_psi)
+#pred_trajectory = generate_trajectory(init_l, init_psi, yhat_delta_l, yhat_delta_psi)
+#pred_trajectory_only_l = generate_trajectory(init_l, init_psi, yhat_delta_l, y_delta_psi)
+#pred_trajectory_only_psi = generate_trajectory(init_l, init_psi, y_delta_l, yhat_delta_psi)
 
-#gt_trajectory = generate_trajectory(init_l, init_psi, y_delta_l[::20], y_delta_psi[::20])
-#pred_trajectory = generate_trajectory(init_l, init_psi, yhat_delta_l[::20], yhat_delta_psi[::20])
-#pred_trajectory_only_l = generate_trajectory(init_l, init_psi, yhat_delta_l[::20], y_delta_psi[::20])
-#pred_trajectory_only_psi = generate_trajectory(init_l, init_psi, y_delta_l[::20], yhat_delta_psi[::20])
+gt_trajectory = generate_trajectory(init_l, init_psi, y_delta_l[::20], y_delta_psi[::20])
+pred_trajectory = generate_trajectory(init_l, init_psi, yhat_delta_l[::20], yhat_delta_psi[::20])
+pred_trajectory_only_l = generate_trajectory(init_l, init_psi, yhat_delta_l[::20], y_delta_psi[::20])
+pred_trajectory_only_psi = generate_trajectory(init_l, init_psi, y_delta_l[::20], yhat_delta_psi[::20])
 
 plt.figure()
 plt.plot(gt_trajectory[:, 0], gt_trajectory[:, 1])
