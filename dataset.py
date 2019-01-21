@@ -1,5 +1,6 @@
 import numpy as np
 import quaternion
+import cv2
 
 from keras.utils import Sequence
 
@@ -13,7 +14,62 @@ def cartesian_to_spherical_coordinates(point_cartesian):
     else:
         return 0, 0, 0
 
-def load_dataset_6d(imu_data_filename, gt_data_filename, window_size=200, stride=10):
+
+def load_dataset_6d_rvec(imu_data_filename, gt_data_filename, window_size=200, stride=10):
+
+    imu_data = np.genfromtxt(imu_data_filename, delimiter=',')
+    gt_data = np.genfromtxt(gt_data_filename, delimiter=',')
+
+    imu_data = imu_data[1200:-300]
+    gt_data = gt_data[1200:-300]
+    
+    gyro_acc_data = np.concatenate([imu_data[:, 4:7], imu_data[:, 10:13]], axis=1)
+    
+    pos_data = gt_data[:, 2:5]
+    ori_data = np.concatenate([gt_data[:, 8:9], gt_data[:, 5:8]], axis=1)
+
+    init_q = quaternion.from_float_array(ori_data[window_size//2 - stride//2, :])
+    
+    init_rvec = np.empty((3, 1))
+    cv2.Rodrigues(quaternion.as_rotation_matrix(init_q), init_rvec)
+
+    init_tvec = pos_data[window_size//2 - stride//2, :]
+
+    x = []
+    y_delta_rvec = []
+    y_delta_tvec = []
+
+    for idx in range(0, gyro_acc_data.shape[0] - window_size - 1, stride):
+        x.append(gyro_acc_data[idx + 1 : idx + 1 + window_size, :])
+
+        tvec_a = pos_data[idx + window_size//2 - stride//2, :]
+        tvec_b = pos_data[idx + window_size//2 + stride//2, :]
+
+        q_a = quaternion.from_float_array(ori_data[idx + window_size//2 - stride//2, :])
+        q_b = quaternion.from_float_array(ori_data[idx + window_size//2 + stride//2, :])
+
+        rmat_a = quaternion.as_rotation_matrix(q_a)
+        rmat_b = quaternion.as_rotation_matrix(q_b)
+
+        delta_rmat = np.matmul(rmat_b, rmat_a.T)
+
+        delta_rvec = np.empty((3, 1))
+        cv2.Rodrigues(delta_rmat, delta_rvec)
+
+        delta_tvec = tvec_b - np.matmul(delta_rmat, tvec_a.T).T
+
+        y_delta_rvec.append(delta_rvec)
+        y_delta_tvec.append(delta_tvec)
+
+
+    x = np.reshape(x, (len(x), x[0].shape[0], x[0].shape[1]))
+    y_delta_rvec = np.reshape(y_delta_rvec, (len(y_delta_rvec), y_delta_rvec[0].shape[0]))
+    y_delta_tvec = np.reshape(y_delta_tvec, (len(y_delta_tvec), y_delta_tvec[0].shape[0]))
+
+    return x, [y_delta_rvec, y_delta_tvec], init_rvec, init_tvec
+
+
+def load_dataset_6d_quat(imu_data_filename, gt_data_filename, window_size=200, stride=10):
 
     imu_data = np.genfromtxt(imu_data_filename, delimiter=',')
     gt_data = np.genfromtxt(gt_data_filename, delimiter=',')

@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import cv2
 
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.animation import FuncAnimation
@@ -13,7 +14,20 @@ from dataset import *
 from model import *
 
 
-def generate_trajectory_6d(init_p, init_q, y_delta_p, y_delta_q):
+def generate_trajectory_6d_rvec(init_rvec, init_tvec, y_delta_rvec, y_delta_tvec):
+    cur_rvec = np.array(init_rvec)
+    cur_tvec = np.array(init_tvec)    
+    pred_tvec = []
+    pred_tvec.append(np.array(cur_tvec))
+
+    for [delta_rvec, delta_tvec] in zip(y_delta_rvec, y_delta_tvec):
+        cv2.composeRT(cur_rvec, cur_tvec, delta_rvec, delta_tvec, cur_rvec, cur_tvec)
+        pred_tvec.append(np.array(cur_tvec))
+
+    return np.reshape(pred_tvec, (len(pred_tvec), 3))
+
+
+def generate_trajectory_6d_quat(init_p, init_q, y_delta_p, y_delta_q):
     cur_p = np.array(init_p)
     cur_q = quaternion.from_float_array(init_q)
     pred_p = []
@@ -71,8 +85,11 @@ x = []
 #y_delta_theta = []
 #y_delta_psi = []
 
-y_delta_p = []
-y_delta_q = []
+#y_delta_p = []
+#y_delta_q = []
+
+y_delta_rvec = []
+y_delta_tvec = []
 
 imu_data_filenames = []
 gt_data_filenames = []
@@ -156,7 +173,8 @@ gt_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data5/syn/vi
 for i, (cur_imu_data_filename, cur_gt_data_filename) in enumerate(zip(imu_data_filenames, gt_data_filenames)):
     #cur_x, [cur_y_delta_l, cur_y_delta_psi], init_l, init_psi = load_dataset_2d(cur_imu_data_filename, cur_gt_data_filename, window_size, stride)
     #cur_x, [cur_y_delta_l, cur_y_delta_theta, cur_y_delta_psi], init_l, init_theta, init_psi = load_dataset_3d(cur_imu_data_filename, cur_gt_data_filename, window_size, stride)
-    cur_x, [cur_y_delta_p, cur_y_delta_q], init_p, init_q = load_dataset_6d(cur_imu_data_filename, cur_gt_data_filename, window_size, stride)
+    #cur_x, [cur_y_delta_p, cur_y_delta_q], init_p, init_q = load_dataset_6d_quat(cur_imu_data_filename, cur_gt_data_filename, window_size, stride)
+    cur_x, [cur_y_delta_rvec, cur_y_delta_tvec], init_rvec, init_tvec = load_dataset_6d_rvec(cur_imu_data_filename, cur_gt_data_filename, window_size, stride)
 
     #plt.figure()
     #plt.plot(cur_y_delta_l)
@@ -184,8 +202,11 @@ for i, (cur_imu_data_filename, cur_gt_data_filename) in enumerate(zip(imu_data_f
     #y_delta_theta.append(cur_y_delta_theta)
     #y_delta_psi.append(cur_y_delta_psi)
 
-    y_delta_p.append(cur_y_delta_p)
-    y_delta_q.append(cur_y_delta_q)
+    #y_delta_p.append(cur_y_delta_p)
+    #y_delta_q.append(cur_y_delta_q)
+
+    y_delta_rvec.append(cur_y_delta_rvec)
+    y_delta_tvec.append(cur_y_delta_tvec)
 
 
 x = np.vstack(x)
@@ -194,25 +215,31 @@ x = np.vstack(x)
 #y_delta_theta = np.vstack(y_delta_theta)
 #y_delta_psi = np.vstack(y_delta_psi)
 
-y_delta_p = np.vstack(y_delta_p)
-y_delta_q = np.vstack(y_delta_q)
+#y_delta_p = np.vstack(y_delta_p)
+#y_delta_q = np.vstack(y_delta_q)
+
+y_delta_rvec = np.vstack(y_delta_rvec)
+y_delta_tvec = np.vstack(y_delta_tvec)
 
 #x, y_delta_l, y_delta_psi = shuffle(x, y_delta_l, y_delta_psi)
 #x, y_delta_l, y_delta_theta, y_delta_psi = shuffle(x, y_delta_l, y_delta_theta, y_delta_psi)
-x, y_delta_p, y_delta_q = shuffle(x, y_delta_p, y_delta_q)
+#x, y_delta_p, y_delta_q = shuffle(x, y_delta_p, y_delta_q)
+x, y_delta_rvec, y_delta_tvec = shuffle(x, y_delta_rvec, y_delta_tvec)
 
-do_training = False
+do_training = True
 
 if do_training:
     #model = create_model_2d(window_size)
     #model = create_model_3d(window_size)
-    model = create_model_6d(window_size)
+    #model = create_model_6d_quat(window_size)
+    model = create_model_6d_rvec(window_size)
 
     model_checkpoint = ModelCheckpoint('bidirectional_lstm.hdf5', monitor='val_loss', save_best_only=True, verbose=1)
 
     #history = model.fit(x, [y_delta_l, y_delta_psi], epochs=400, batch_size=512, verbose=1, callbacks=[model_checkpoint], validation_split=0.1)
     #history = model.fit(x, [y_delta_l, y_delta_theta, y_delta_psi], epochs=400, batch_size=512, verbose=1, callbacks=[model_checkpoint], validation_split=0.1)
-    history = model.fit(x, [y_delta_p, y_delta_q], epochs=400, batch_size=512, verbose=1, callbacks=[model_checkpoint], validation_split=0.1)
+    #history = model.fit(x, [y_delta_p, y_delta_q], epochs=400, batch_size=512, verbose=1, callbacks=[model_checkpoint], validation_split=0.1)
+    history = model.fit(x, [y_delta_rvec, y_delta_tvec], epochs=200, batch_size=512, verbose=1, callbacks=[model_checkpoint], validation_split=0.1)
 
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
@@ -228,13 +255,16 @@ model = load_model('bidirectional_lstm.hdf5')
 
 #x, [y_delta_l, y_delta_theta, y_delta_psi], init_l, init_theta, init_psi = load_dataset_3d('Oxford Inertial Tracking Dataset/multi users/user2/syn/imu1.csv', 'Oxford Inertial Tracking Dataset/multi users/user2/syn/vi1.csv', window_size, stride)
 
-x, [y_delta_p, y_delta_q], init_p, init_q = load_dataset_6d('Oxford Inertial Tracking Dataset/multi users/user2/syn/imu1.csv', 'Oxford Inertial Tracking Dataset/multi users/user2/syn/vi1.csv', window_size, stride)
+#x, [y_delta_p, y_delta_q], init_p, init_q = load_dataset_6d_quat('Oxford Inertial Tracking Dataset/multi users/user2/syn/imu1.csv', 'Oxford Inertial Tracking Dataset/multi users/user2/syn/vi1.csv', window_size, stride)
+
+x, [y_delta_rvec, y_delta_tvec], init_rvec, init_tvec = load_dataset_6d_rvec('Oxford Inertial Tracking Dataset/multi users/user2/syn/imu1.csv', 'Oxford Inertial Tracking Dataset/multi users/user2/syn/vi1.csv', window_size, stride)
 
 #x, [y_delta_l, y_delta_theta, y_delta_psi], init_l, init_theta, init_psi = load_dataset_3d('Oxford Inertial Tracking Dataset/trolley/data2/syn/imu6.csv', 'Oxford Inertial Tracking Dataset/trolley/data2/syn/vi6.csv', window_size, stride)
 
 #[yhat_delta_l, yhat_delta_psi] = model.predict(x, batch_size=1, verbose=1)
 #[yhat_delta_l, yhat_delta_theta, yhat_delta_psi] = model.predict(x, batch_size=1, verbose=1)
-[yhat_delta_p, yhat_delta_q] = model.predict(x, batch_size=1, verbose=1)
+#[yhat_delta_p, yhat_delta_q] = model.predict(x, batch_size=1, verbose=1)
+[yhat_delta_rvec, yhat_delta_tvec] = model.predict(x, batch_size=1, verbose=1)
 
 #plt.figure()
 #plt.plot(y_delta_l)
@@ -284,8 +314,11 @@ x, [y_delta_p, y_delta_q], init_p, init_q = load_dataset_6d('Oxford Inertial Tra
 #gt_trajectory = generate_trajectory_3d(init_l, init_theta, init_psi, y_delta_l, y_delta_theta, y_delta_psi)
 #pred_trajectory = generate_trajectory_3d(init_l, init_theta, init_psi, yhat_delta_l, yhat_delta_theta, yhat_delta_psi)
 
-gt_trajectory = generate_trajectory_6d(init_p, init_q, y_delta_p, y_delta_q)
-pred_trajectory = generate_trajectory_6d(init_p, init_q, yhat_delta_p, yhat_delta_q)
+#gt_trajectory = generate_trajectory_6d_quat(init_p, init_q, y_delta_p, y_delta_q)
+#pred_trajectory = generate_trajectory_6d_quat(init_p, init_q, yhat_delta_p, yhat_delta_q)
+
+gt_trajectory = generate_trajectory_6d_rvec(init_rvec, init_tvec, y_delta_rvec, y_delta_tvec)
+pred_trajectory = generate_trajectory_6d_tvec(init_rvec, init_tvec, yhat_delta_rvec, yhat_delta_tvec)
 
 ##plt.plot(gt_trajectory[:, 0], gt_trajectory[:, 1])
 #plt.plot(gt_trajectory[0:200, 0], gt_trajectory[0:200, 1])
@@ -296,8 +329,8 @@ pred_trajectory = generate_trajectory_6d(init_p, init_q, yhat_delta_p, yhat_delt
 
 #fig = plt.figure()
 #ax = fig.gca(projection='3d')
-##ax.plot(gt_trajectory[:, 0], gt_trajectory[:, 1], gt_trajectory[:, 2])
-#ax.plot(gt_trajectory[0:200, 0], gt_trajectory[0:200, 1], gt_trajectory[0:200, 2])
+#ax.plot(gt_trajectory[:, 0], gt_trajectory[:, 1], gt_trajectory[:, 2])
+##ax.plot(gt_trajectory[0:200, 0], gt_trajectory[0:200, 1], gt_trajectory[0:200, 2])
 #ax.set_title('Trajectory Ground Truth');
 #ax.set_xlabel('X (m)')
 #ax.set_ylabel('Y (m)')
@@ -333,18 +366,18 @@ pred_trajectory = generate_trajectory_6d(init_p, init_q, yhat_delta_p, yhat_delt
 
 fig = plt.figure()
 ax = fig.gca(projection='3d')
-ax.plot(gt_trajectory[:, 0], gt_trajectory[:, 1], gt_trajectory[:, 2])
-ax.plot(pred_trajectory[:, 0], pred_trajectory[:, 1], pred_trajectory[:, 2])
-#ax.plot(gt_trajectory[0:200, 0], gt_trajectory[0:200, 1], gt_trajectory[0:200, 2])
-#ax.plot(pred_trajectory[0:200, 0], pred_trajectory[0:200, 1], pred_trajectory[0:200, 2])
+#ax.plot(gt_trajectory[:, 0], gt_trajectory[:, 1], gt_trajectory[:, 2])
+#ax.plot(pred_trajectory[:, 0], pred_trajectory[:, 1], pred_trajectory[:, 2])
+ax.plot(gt_trajectory[0:200, 0], gt_trajectory[0:200, 1], gt_trajectory[0:200, 2])
+ax.plot(pred_trajectory[0:200, 0], pred_trajectory[0:200, 1], pred_trajectory[0:200, 2])
 ax.set_title('Trajectory Pred vs Ground Truth');
 ax.set_xlabel('X (m)')
 ax.set_ylabel('Y (m)')
 ax.set_zlabel('Z (m)')
-min_lim = np.minimum(np.amin(gt_trajectory), np.amin(pred_trajectory))
-max_lim = np.maximum(np.amax(gt_trajectory), np.amax(pred_trajectory))
-#min_lim = np.minimum(np.amin(gt_trajectory[0:200, :]), np.amin(pred_trajectory[0:200, :]))
-#max_lim = np.maximum(np.amax(gt_trajectory[0:200, :]), np.amax(pred_trajectory[0:200, :]))
+#min_lim = np.minimum(np.amin(gt_trajectory), np.amin(pred_trajectory))
+#max_lim = np.maximum(np.amax(gt_trajectory), np.amax(pred_trajectory))
+min_lim = np.minimum(np.amin(gt_trajectory[0:200, :]), np.amin(pred_trajectory[0:200, :]))
+max_lim = np.maximum(np.amax(gt_trajectory[0:200, :]), np.amax(pred_trajectory[0:200, :]))
 ax.set_xlim(min_lim, max_lim)
 ax.set_ylim(min_lim, max_lim)
 ax.set_zlim(min_lim, max_lim)

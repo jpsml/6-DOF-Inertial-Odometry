@@ -2,7 +2,24 @@ from keras.models import Sequential, Model
 from keras.layers import Bidirectional, CuDNNLSTM, Dropout, Dense, Input
 from keras.optimizers import Adam
 
-def create_model_6d(window_size=200):
+
+def create_model_6d_rvec(window_size=200):
+    input_gyro_acc = Input((window_size, 6))
+    lstm1 = Bidirectional(CuDNNLSTM(128, return_sequences=True))(input_gyro_acc)    
+    drop1 = Dropout(0.25)(lstm1)
+    lstm2 = Bidirectional(CuDNNLSTM(128))(drop1)    
+    drop2 = Dropout(0.25)(lstm2)    
+    output_delta_rvec = Dense(3)(drop2)
+    output_delta_tvec = Dense(3)(drop2)
+
+    model = Model(inputs = input_gyro_acc, outputs = [output_delta_rvec, output_delta_tvec])
+    model.summary()
+    model.compile(optimizer = Adam(0.0001), loss = 'mean_squared_error')
+    
+    return model
+
+
+def create_model_6d_quat(window_size=200):
     input_gyro_acc = Input((window_size, 6))
     lstm1 = Bidirectional(CuDNNLSTM(128, return_sequences=True))(input_gyro_acc)    
     drop1 = Dropout(0.25)(lstm1)
