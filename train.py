@@ -193,9 +193,9 @@ model = load_model('bidirectional_lstm.hdf5')
 
 #x, [y_delta_l, y_delta_psi], init_l, init_psi = load_dataset_2d('Oxford Inertial Tracking Dataset/multi users/user2/syn/imu1.csv', 'Oxford Inertial Tracking Dataset/multi users/user2/syn/vi1.csv', window_size, stride)
 
-#x, [y_delta_l, y_delta_theta, y_delta_psi], init_l, init_theta, init_psi = load_dataset_3d('Oxford Inertial Tracking Dataset/multi users/user2/syn/imu1.csv', 'Oxford Inertial Tracking Dataset/multi users/user2/syn/vi1.csv', window_size, stride)
+x, [y_delta_l, y_delta_theta, y_delta_psi], init_l, init_theta, init_psi = load_dataset_3d('Oxford Inertial Tracking Dataset/multi users/user2/syn/imu1.csv', 'Oxford Inertial Tracking Dataset/multi users/user2/syn/vi1.csv', window_size, stride)
 
-x, [y_delta_l, y_delta_theta, y_delta_psi], init_l, init_theta, init_psi = load_dataset_3d('Oxford Inertial Tracking Dataset/trolley/data2/syn/imu6.csv', 'Oxford Inertial Tracking Dataset/trolley/data2/syn/vi6.csv', window_size, stride)
+#x, [y_delta_l, y_delta_theta, y_delta_psi], init_l, init_theta, init_psi = load_dataset_3d('Oxford Inertial Tracking Dataset/trolley/data2/syn/imu6.csv', 'Oxford Inertial Tracking Dataset/trolley/data2/syn/vi6.csv', window_size, stride)
 
 #[yhat_delta_l, yhat_delta_psi] = model.predict(x, batch_size=1, verbose=1)
 [yhat_delta_l, yhat_delta_theta, yhat_delta_psi] = model.predict(x, batch_size=1, verbose=1)
@@ -261,30 +261,27 @@ pred_trajectory = generate_trajectory_3d(init_l, init_theta, init_psi, yhat_delt
 #plt.plot(pred_trajectory[:, 0], pred_trajectory[:, 1])
 #plt.plot(gt_trajectory[0:200, 0], gt_trajectory[0:200, 1])
 #plt.plot(pred_trajectory[0:200, 0], pred_trajectory[0:200, 1])
-fig, ax = plt.subplots()
 
-plt.title('Trajectory Pred vs Ground Truth')
-plt.ylabel('Y (m)')
-plt.xlabel('X (m)')
-plt.legend(['Trajectory Ground Truth', 'Trajectory Pred'], loc='upper left')
-
-ax.set_xlim(np.minimum(np.amin(gt_trajectory[:, 0]), np.amin(pred_trajectory[:, 0])), np.maximum(np.amax(gt_trajectory[:, 0]), np.amax(pred_trajectory[:, 0])))
-ax.set_ylim(np.minimum(np.amin(gt_trajectory[:, 1]), np.amin(pred_trajectory[:, 1])), np.maximum(np.amax(gt_trajectory[:, 1]), np.amax(pred_trajectory[:, 1])))
-gt_x_data, gt_y_data, pred_x_data, pred_y_data = [], [], [], []
-gt_ln, = plt.plot([], [], animated=True)
-pred_ln, = plt.plot([], [], animated=True)
-
-def update_trajectories(frame):
-	gt_x_data.append(gt_trajectory[frame, 0])
-	gt_y_data.append(gt_trajectory[frame, 1])
-	pred_x_data.append(pred_trajectory[frame, 0])
-	pred_y_data.append(pred_trajectory[frame, 1])
-	gt_ln.set_data(gt_x_data, gt_y_data)
-	pred_ln.set_data(pred_x_data, pred_y_data)
-	return [gt_ln, pred_ln]
-
-#ani = FuncAnimation(fig, update_trajectories, frames=gt_trajectory.shape[0], interval=100, blit=True)
-ani = FuncAnimation(fig, update_trajectories, frames=1200, interval=100, blit=True)
+#fig, ax = plt.subplots()
+#plt.title('Trajectory Pred vs Ground Truth')
+#plt.ylabel('Y (m)')
+#plt.xlabel('X (m)')
+#plt.legend(['Trajectory Ground Truth', 'Trajectory Pred'], loc='upper left')
+#ax.set_xlim(np.minimum(np.amin(gt_trajectory[:, 0]), np.amin(pred_trajectory[:, 0])), np.maximum(np.amax(gt_trajectory[:, 0]), np.amax(pred_trajectory[:, 0])))
+#ax.set_ylim(np.minimum(np.amin(gt_trajectory[:, 1]), np.amin(pred_trajectory[:, 1])), np.maximum(np.amax(gt_trajectory[:, 1]), np.amax(pred_trajectory[:, 1])))
+#gt_x_data, gt_y_data, pred_x_data, pred_y_data = [], [], [], []
+#gt_ln, = plt.plot([], [], animated=True)
+#pred_ln, = plt.plot([], [], animated=True)
+#def update_trajectories(frame):
+#	gt_x_data.append(gt_trajectory[frame, 0])
+#	gt_y_data.append(gt_trajectory[frame, 1])
+#	pred_x_data.append(pred_trajectory[frame, 0])
+#	pred_y_data.append(pred_trajectory[frame, 1])
+#	gt_ln.set_data(gt_x_data, gt_y_data)
+#	pred_ln.set_data(pred_x_data, pred_y_data)
+#	return [gt_ln, pred_ln]
+##ani = FuncAnimation(fig, update_trajectories, frames=gt_trajectory.shape[0], interval=100, blit=True)
+#ani = FuncAnimation(fig, update_trajectories, frames=1200, interval=100, blit=True)
 
 #plt.figure()
 ##plt.plot(gt_trajectory[:, 0], gt_trajectory[:, 1])
@@ -306,17 +303,22 @@ ani = FuncAnimation(fig, update_trajectories, frames=1200, interval=100, blit=Tr
 #plt.xlabel('X (m)')
 #plt.legend(['Trajectory Ground Truth', 'Trajectory Pred Only Delta Psi'], loc='upper left')
 
-#fig = plt.figure()
-#ax = fig.gca(projection='3d')
+fig = plt.figure()
+ax = fig.gca(projection='3d')
 #ax.plot(gt_trajectory[:, 0], gt_trajectory[:, 1], gt_trajectory[:, 2])
 #ax.plot(pred_trajectory[:, 0], pred_trajectory[:, 1], pred_trajectory[:, 2])
-##ax.plot(gt_trajectory[0:100, 0], gt_trajectory[0:100, 1], gt_trajectory[0:100, 2])
-##ax.plot(pred_trajectory[0:100, 0], pred_trajectory[0:100, 1], pred_trajectory[0:100, 2])
-#ax.set_title('Trajectory Pred vs Ground Truth');
-#ax.set_xlabel('X (m)')
-#ax.set_ylabel('Y (m)')
-#ax.set_zlabel('Z (m)')
-#ax.legend(['Trajectory Ground Truth', 'Trajectory Pred'], loc='upper left')
+ax.plot(gt_trajectory[0:200, 0], gt_trajectory[0:200, 1], gt_trajectory[0:200, 2])
+ax.plot(pred_trajectory[0:200, 0], pred_trajectory[0:200, 1], pred_trajectory[0:200, 2])
+ax.set_title('Trajectory Pred vs Ground Truth');
+ax.set_xlabel('X (m)')
+ax.set_ylabel('Y (m)')
+ax.set_zlabel('Z (m)')
+min_lim = np.minimum(np.amin(gt_trajectory[0:200, :]), np.amin(pred_trajectory[0:200, :]))
+max_lim = np.maximum(np.amax(gt_trajectory[0:200, :]), np.amin(pred_trajectory[0:200, :]))
+ax.set_xlim(min_lim, max_lim)
+ax.set_ylim(min_lim, max_lim)
+ax.set_zlim(min_lim, max_lim)
+ax.legend(['Trajectory Ground Truth', 'Trajectory Pred'], loc='upper left')
 
 plt.show()
 
