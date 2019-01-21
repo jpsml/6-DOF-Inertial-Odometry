@@ -201,7 +201,7 @@ y_delta_q = np.vstack(y_delta_q)
 #x, y_delta_l, y_delta_theta, y_delta_psi = shuffle(x, y_delta_l, y_delta_theta, y_delta_psi)
 x, y_delta_p, y_delta_q = shuffle(x, y_delta_p, y_delta_q)
 
-do_training = True
+do_training = False
 
 if do_training:
     #model = create_model_2d(window_size)
@@ -285,7 +285,7 @@ x, [y_delta_p, y_delta_q], init_p, init_q = load_dataset_6d('Oxford Inertial Tra
 #pred_trajectory = generate_trajectory_3d(init_l, init_theta, init_psi, yhat_delta_l, yhat_delta_theta, yhat_delta_psi)
 
 gt_trajectory = generate_trajectory_6d(init_p, init_q, y_delta_p, y_delta_q)
-#pred_trajectory = generate_trajectory_6d(init_p, init_q, yhat_delta_p, yhat_delta_q)
+pred_trajectory = generate_trajectory_6d(init_p, init_q, yhat_delta_p, yhat_delta_q)
 
 ##plt.plot(gt_trajectory[:, 0], gt_trajectory[:, 1])
 #plt.plot(gt_trajectory[0:200, 0], gt_trajectory[0:200, 1])
@@ -333,16 +333,16 @@ gt_trajectory = generate_trajectory_6d(init_p, init_q, y_delta_p, y_delta_q)
 
 fig = plt.figure()
 ax = fig.gca(projection='3d')
-#ax.plot(gt_trajectory[:, 0], gt_trajectory[:, 1], gt_trajectory[:, 2])
-#ax.plot(pred_trajectory[:, 0], pred_trajectory[:, 1], pred_trajectory[:, 2])
-ax.plot(gt_trajectory[0:200, 0], gt_trajectory[0:200, 1], gt_trajectory[0:200, 2])
-ax.plot(pred_trajectory[0:200, 0], pred_trajectory[0:200, 1], pred_trajectory[0:200, 2])
+ax.plot(gt_trajectory[:, 0], gt_trajectory[:, 1], gt_trajectory[:, 2])
+ax.plot(pred_trajectory[:, 0], pred_trajectory[:, 1], pred_trajectory[:, 2])
+#ax.plot(gt_trajectory[0:200, 0], gt_trajectory[0:200, 1], gt_trajectory[0:200, 2])
+#ax.plot(pred_trajectory[0:200, 0], pred_trajectory[0:200, 1], pred_trajectory[0:200, 2])
 ax.set_title('Trajectory Pred vs Ground Truth');
 ax.set_xlabel('X (m)')
 ax.set_ylabel('Y (m)')
 ax.set_zlabel('Z (m)')
 min_lim = np.minimum(np.amin(gt_trajectory[0:200, :]), np.amin(pred_trajectory[0:200, :]))
-max_lim = np.maximum(np.amax(gt_trajectory[0:200, :]), np.amin(pred_trajectory[0:200, :]))
+max_lim = np.maximum(np.amax(gt_trajectory[0:200, :]), np.amax(pred_trajectory[0:200, :]))
 ax.set_xlim(min_lim, max_lim)
 ax.set_ylim(min_lim, max_lim)
 ax.set_zlim(min_lim, max_lim)
