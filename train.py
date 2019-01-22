@@ -256,7 +256,7 @@ if do_training:
     plt.legend(['Train', 'Validation'], loc='upper left')
     plt.show()
 
-    print([np.exp(K.get_value(log_var[0]))**0.5 for log_var in train_model.layers[-1].log_vars])
+    print([K.get_value(log_var[0]) for log_var in train_model.layers[-1].log_vars])
 
 #model = load_model('bidirectional_lstm.hdf5')
 
