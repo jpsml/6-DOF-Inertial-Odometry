@@ -4,6 +4,19 @@ from keras.initializers import Constant
 from keras.optimizers import Adam
 from keras import backend as K
 
+def weighted_squared_error_xyz(y_true, y_pred):
+    # TODO: replace by regressed weight value
+    s = 1.
+    precision = K.exp(-s)
+    return K.sum(precision * (y_true - y_pred) ** 2. + s, -1)
+
+
+def weighted_squared_error_wpqr(y_true, y_pred):
+    # TODO: replace by regressed weight value
+    s = 1.
+    precision = K.exp(-s)
+    return K.sum(precision * (y_true - y_pred) ** 2. + s, -1)
+
 
 # Custom loss layer
 class CustomMultiLossLayer(Layer):
