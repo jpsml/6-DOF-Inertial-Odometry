@@ -246,7 +246,7 @@ if do_training:
     history = model.fit(x, [y_delta_p, y_delta_q], epochs=400, batch_size=512, verbose=1, callbacks=[model_checkpoint], validation_split=0.1)
     #history = model.fit(x, [y_delta_rvec, y_delta_tvec], epochs=200, batch_size=512, verbose=1, callbacks=[model_checkpoint], validation_split=0.1)
 
-    #history = train_model.fit([x, y_delta_p, y_delta_q], epochs=400, batch_size=512, verbose=1, callbacks=[model_checkpoint], validation_split=0.1)
+    #history = train_model.fit([x, y_delta_p, y_delta_q], epochs=1000, batch_size=512, verbose=1, callbacks=[model_checkpoint], validation_split=0.1)
 
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
@@ -255,6 +255,8 @@ if do_training:
     plt.xlabel('Epoch')
     plt.legend(['Train', 'Validation'], loc='upper left')
     plt.show()
+
+    #train_model = load_model('bidirectional_lstm.hdf5', custom_objects={'CustomMultiLossLayer':CustomMultiLossLayer}, compile=False)
 
     #print([K.get_value(log_var[0]) for log_var in train_model.layers[-1].log_vars])
 
@@ -300,23 +302,7 @@ x, [y_delta_p, y_delta_q], init_p, init_q = load_dataset_6d_quat('Oxford Inertia
 #plt.xlabel('Time (0.1s)')
 #plt.legend(['Delta Psi Ground Truth', 'Delta Psi Pred'], loc='upper left')
 
-plt.figure()
-plt.plot(y_delta_p)
-plt.plot(yhat_delta_p)
-plt.title('Delta P Pred vs Ground Truth')
-plt.ylabel('Delta P (m)')
-plt.xlabel('Time (0.1s)')
-plt.legend(['Delta P Ground Truth', 'Delta P Pred'], loc='upper left')
-
-plt.figure()
-plt.plot(y_delta_q)
-plt.plot(yhat_delta_q)
-plt.title('Delta Q Pred vs Ground Truth')
-plt.ylabel('Delta Q (rad)')
-plt.xlabel('Time (0.1s)')
-plt.legend(['Delta Q Ground Truth', 'Delta Q Pred'], loc='upper left')
-
-plt.show()
+#plt.show()
 
 #gt_trajectory = generate_trajectory_2d(init_l, init_psi, y_delta_l, y_delta_psi)
 #pred_trajectory = generate_trajectory_2d(init_l, init_psi, yhat_delta_l, yhat_delta_psi)
