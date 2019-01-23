@@ -232,21 +232,21 @@ do_training = True
 if do_training:
     #model = create_model_2d(window_size)
     #model = create_model_3d(window_size)
-    #model = create_model_6d_quat(window_size)
+    model = create_model_6d_quat(window_size)
     #model = create_model_6d_rvec(window_size)
 
-    pred_model = create_pred_model_6d_quat(window_size)
-    train_model = create_train_model_6d_quat(pred_model, window_size)
-    train_model.compile(optimizer=Adam(0.0001), loss=None)
+    #pred_model = create_pred_model_6d_quat(window_size)
+    #train_model = create_train_model_6d_quat(pred_model, window_size)
+    #train_model.compile(optimizer=Adam(0.0001), loss=None)
 
     model_checkpoint = ModelCheckpoint('bidirectional_lstm.hdf5', monitor='val_loss', save_best_only=True, verbose=1)
 
     #history = model.fit(x, [y_delta_l, y_delta_psi], epochs=400, batch_size=512, verbose=1, callbacks=[model_checkpoint], validation_split=0.1)
     #history = model.fit(x, [y_delta_l, y_delta_theta, y_delta_psi], epochs=400, batch_size=512, verbose=1, callbacks=[model_checkpoint], validation_split=0.1)
-    #history = model.fit(x, [y_delta_p, y_delta_q], epochs=400, batch_size=512, verbose=1, callbacks=[model_checkpoint], validation_split=0.1)
+    history = model.fit(x, [y_delta_p, y_delta_q], epochs=400, batch_size=512, verbose=1, callbacks=[model_checkpoint], validation_split=0.1)
     #history = model.fit(x, [y_delta_rvec, y_delta_tvec], epochs=200, batch_size=512, verbose=1, callbacks=[model_checkpoint], validation_split=0.1)
 
-    history = train_model.fit([x, y_delta_p, y_delta_q], epochs=400, batch_size=512, verbose=1, callbacks=[model_checkpoint], validation_split=0.1)
+    #history = train_model.fit([x, y_delta_p, y_delta_q], epochs=400, batch_size=512, verbose=1, callbacks=[model_checkpoint], validation_split=0.1)
 
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
@@ -256,15 +256,16 @@ if do_training:
     plt.legend(['Train', 'Validation'], loc='upper left')
     plt.show()
 
-    print([K.get_value(log_var[0]) for log_var in train_model.layers[-1].log_vars])
+    #print([K.get_value(log_var[0]) for log_var in train_model.layers[-1].log_vars])
 
 #model = load_model('bidirectional_lstm.hdf5')
+model = load_model('bidirectional_lstm.hdf5', custom_objects={'weighted_squared_error_xyz':weighted_squared_error_xyz, 'weighted_squared_error_wpqr':weighted_squared_error_wpqr})
 
 #x, [y_delta_l, y_delta_psi], init_l, init_psi = load_dataset_2d('Oxford Inertial Tracking Dataset/multi users/user2/syn/imu1.csv', 'Oxford Inertial Tracking Dataset/multi users/user2/syn/vi1.csv', window_size, stride)
 
 #x, [y_delta_l, y_delta_theta, y_delta_psi], init_l, init_theta, init_psi = load_dataset_3d('Oxford Inertial Tracking Dataset/multi users/user2/syn/imu1.csv', 'Oxford Inertial Tracking Dataset/multi users/user2/syn/vi1.csv', window_size, stride)
 
-#x, [y_delta_p, y_delta_q], init_p, init_q = load_dataset_6d_quat('Oxford Inertial Tracking Dataset/multi users/user2/syn/imu1.csv', 'Oxford Inertial Tracking Dataset/multi users/user2/syn/vi1.csv', window_size, stride)
+x, [y_delta_p, y_delta_q], init_p, init_q = load_dataset_6d_quat('Oxford Inertial Tracking Dataset/multi users/user2/syn/imu1.csv', 'Oxford Inertial Tracking Dataset/multi users/user2/syn/vi1.csv', window_size, stride)
 
 #x, [y_delta_rvec, y_delta_tvec], init_rvec, init_tvec = load_dataset_6d_rvec('Oxford Inertial Tracking Dataset/multi users/user2/syn/imu1.csv', 'Oxford Inertial Tracking Dataset/multi users/user2/syn/vi1.csv', window_size, stride)
 
@@ -272,7 +273,7 @@ if do_training:
 
 #[yhat_delta_l, yhat_delta_psi] = model.predict(x, batch_size=1, verbose=1)
 #[yhat_delta_l, yhat_delta_theta, yhat_delta_psi] = model.predict(x, batch_size=1, verbose=1)
-#[yhat_delta_p, yhat_delta_q] = model.predict(x, batch_size=1, verbose=1)
+[yhat_delta_p, yhat_delta_q] = model.predict(x, batch_size=1, verbose=1)
 #[yhat_delta_rvec, yhat_delta_tvec] = model.predict(x, batch_size=1, verbose=1)
 
 #plt.figure()
@@ -299,23 +300,23 @@ if do_training:
 #plt.xlabel('Time (0.1s)')
 #plt.legend(['Delta Psi Ground Truth', 'Delta Psi Pred'], loc='upper left')
 
-#plt.figure()
-#plt.plot(y_delta_p)
-#plt.plot(yhat_delta_p)
-#plt.title('Delta P Pred vs Ground Truth')
-#plt.ylabel('Delta P (m)')
-#plt.xlabel('Time (0.1s)')
-#plt.legend(['Delta P Ground Truth', 'Delta P Pred'], loc='upper left')
+plt.figure()
+plt.plot(y_delta_p)
+plt.plot(yhat_delta_p)
+plt.title('Delta P Pred vs Ground Truth')
+plt.ylabel('Delta P (m)')
+plt.xlabel('Time (0.1s)')
+plt.legend(['Delta P Ground Truth', 'Delta P Pred'], loc='upper left')
 
-#plt.figure()
-#plt.plot(y_delta_q)
-#plt.plot(yhat_delta_q)
-#plt.title('Delta Q Pred vs Ground Truth')
-#plt.ylabel('Delta Q (rad)')
-#plt.xlabel('Time (0.1s)')
-#plt.legend(['Delta Q Ground Truth', 'Delta Q Pred'], loc='upper left')
+plt.figure()
+plt.plot(y_delta_q)
+plt.plot(yhat_delta_q)
+plt.title('Delta Q Pred vs Ground Truth')
+plt.ylabel('Delta Q (rad)')
+plt.xlabel('Time (0.1s)')
+plt.legend(['Delta Q Ground Truth', 'Delta Q Pred'], loc='upper left')
 
-#plt.show()
+plt.show()
 
 #gt_trajectory = generate_trajectory_2d(init_l, init_psi, y_delta_l, y_delta_psi)
 #pred_trajectory = generate_trajectory_2d(init_l, init_psi, yhat_delta_l, yhat_delta_psi)
@@ -323,8 +324,8 @@ if do_training:
 #gt_trajectory = generate_trajectory_3d(init_l, init_theta, init_psi, y_delta_l, y_delta_theta, y_delta_psi)
 #pred_trajectory = generate_trajectory_3d(init_l, init_theta, init_psi, yhat_delta_l, yhat_delta_theta, yhat_delta_psi)
 
-#gt_trajectory = generate_trajectory_6d_quat(init_p, init_q, y_delta_p, y_delta_q)
-#pred_trajectory = generate_trajectory_6d_quat(init_p, init_q, yhat_delta_p, yhat_delta_q)
+gt_trajectory = generate_trajectory_6d_quat(init_p, init_q, y_delta_p, y_delta_q)
+pred_trajectory = generate_trajectory_6d_quat(init_p, init_q, yhat_delta_p, yhat_delta_q)
 
 #gt_trajectory = generate_trajectory_6d_rvec(init_rvec, init_tvec, y_delta_rvec, y_delta_tvec)
 #pred_trajectory = generate_trajectory_6d_rvec(init_rvec, init_tvec, yhat_delta_rvec, yhat_delta_tvec)
@@ -373,23 +374,23 @@ if do_training:
 ##ani = FuncAnimation(fig, update_trajectories, frames=gt_trajectory.shape[0], interval=100, blit=True)
 #ani = FuncAnimation(fig, update_trajectories, frames=1200, interval=100, blit=True)
 
-#fig = plt.figure()
-#ax = fig.gca(projection='3d')
-##ax.plot(gt_trajectory[:, 0], gt_trajectory[:, 1], gt_trajectory[:, 2])
-##ax.plot(pred_trajectory[:, 0], pred_trajectory[:, 1], pred_trajectory[:, 2])
-#ax.plot(gt_trajectory[0:200, 0], gt_trajectory[0:200, 1], gt_trajectory[0:200, 2])
-#ax.plot(pred_trajectory[0:200, 0], pred_trajectory[0:200, 1], pred_trajectory[0:200, 2])
-#ax.set_title('Trajectory Pred vs Ground Truth');
-#ax.set_xlabel('X (m)')
-#ax.set_ylabel('Y (m)')
-#ax.set_zlabel('Z (m)')
-##min_lim = np.minimum(np.amin(gt_trajectory), np.amin(pred_trajectory))
-##max_lim = np.maximum(np.amax(gt_trajectory), np.amax(pred_trajectory))
-#min_lim = np.minimum(np.amin(gt_trajectory[0:200, :]), np.amin(pred_trajectory[0:200, :]))
-#max_lim = np.maximum(np.amax(gt_trajectory[0:200, :]), np.amax(pred_trajectory[0:200, :]))
-#ax.set_xlim(min_lim, max_lim)
-#ax.set_ylim(min_lim, max_lim)
-#ax.set_zlim(min_lim, max_lim)
-#ax.legend(['Trajectory Ground Truth', 'Trajectory Pred'], loc='upper left')
+fig = plt.figure()
+ax = fig.gca(projection='3d')
+#ax.plot(gt_trajectory[:, 0], gt_trajectory[:, 1], gt_trajectory[:, 2])
+#ax.plot(pred_trajectory[:, 0], pred_trajectory[:, 1], pred_trajectory[:, 2])
+ax.plot(gt_trajectory[0:200, 0], gt_trajectory[0:200, 1], gt_trajectory[0:200, 2])
+ax.plot(pred_trajectory[0:200, 0], pred_trajectory[0:200, 1], pred_trajectory[0:200, 2])
+ax.set_title('Trajectory Pred vs Ground Truth');
+ax.set_xlabel('X (m)')
+ax.set_ylabel('Y (m)')
+ax.set_zlabel('Z (m)')
+#min_lim = np.minimum(np.amin(gt_trajectory), np.amin(pred_trajectory))
+#max_lim = np.maximum(np.amax(gt_trajectory), np.amax(pred_trajectory))
+min_lim = np.minimum(np.amin(gt_trajectory[0:200, :]), np.amin(pred_trajectory[0:200, :]))
+max_lim = np.maximum(np.amax(gt_trajectory[0:200, :]), np.amax(pred_trajectory[0:200, :]))
+ax.set_xlim(min_lim, max_lim)
+ax.set_ylim(min_lim, max_lim)
+ax.set_zlim(min_lim, max_lim)
+ax.legend(['Trajectory Ground Truth', 'Trajectory Pred'], loc='upper left')
 
-#plt.show()
+plt.show()

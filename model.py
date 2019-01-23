@@ -5,15 +5,13 @@ from keras.optimizers import Adam
 from keras import backend as K
 
 def weighted_squared_error_xyz(y_true, y_pred):
-    # TODO: replace by regressed weight value
-    s = 1.
+    s = -5.9168267
     precision = K.exp(-s)
     return K.sum(precision * (y_true - y_pred) ** 2. + s, -1)
 
 
-def weighted_squared_error_wpqr(y_true, y_pred):
-    # TODO: replace by regressed weight value
-    s = 1.
+def weighted_squared_error_wpqr(y_true, y_pred):    
+    s = -5.1520886
     precision = K.exp(-s)
     return K.sum(precision * (y_true - y_pred) ** 2. + s, -1)
 
@@ -102,7 +100,8 @@ def create_model_6d_quat(window_size=200):
 
     model = Model(inputs = input_gyro_acc, outputs = [output_delta_p, output_delta_q])
     model.summary()
-    model.compile(optimizer = Adam(0.0001), loss = 'mean_squared_error')
+    #model.compile(optimizer = Adam(0.0001), loss = 'mean_squared_error')
+    model.compile(optimizer = Adam(0.0001), loss = [weighted_squared_error_xyz, weighted_squared_error_wpqr])
     
     return model
 
