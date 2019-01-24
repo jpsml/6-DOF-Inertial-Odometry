@@ -7,13 +7,15 @@ from keras import backend as K
 def weighted_squared_error_xyz(y_true, y_pred):
     s = -8.392255
     precision = K.exp(-s)
-    return K.mean(K.sum(precision * (y_true - y_pred) ** 2. + s, -1))
+    #return K.mean(K.sum(precision * (y_true - y_pred) ** 2. + s, -1))
+    return K.sum(precision * (y_true - y_pred) ** 2., -1)  + s
 
 
 def weighted_squared_error_wpqr(y_true, y_pred):    
     s = -5.4678597
     precision = K.exp(-s)
-    return K.mean(K.sum(precision * (y_true - y_pred) ** 2. + s, -1))
+    #return K.mean(K.sum(precision * (y_true - y_pred) ** 2. + s, -1))
+    return K.sum(precision * (y_true - y_pred) ** 2., -1)  + s
 
 
 # Custom loss layer
@@ -36,8 +38,10 @@ class CustomMultiLossLayer(Layer):
         loss = 0
         for y_true, y_pred, log_var in zip(ys_true, ys_pred, self.log_vars):
             precision = K.exp(-log_var[0])
-            loss += K.sum(precision * (y_true - y_pred)**2. + log_var[0], -1)
-        return K.mean(loss)
+            #loss += K.sum(precision * (y_true - y_pred)**2. + log_var[0], -1)
+            loss += K.sum(precision * (y_true - y_pred)**2., -1) + log_var[0]
+        #return K.mean(loss)
+        return loss
 
     def call(self, inputs):
         ys_true = inputs[:self.nb_outputs]
