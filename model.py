@@ -7,13 +7,13 @@ from keras import backend as K
 def weighted_squared_error_xyz(y_true, y_pred):
     s = -8.392255
     precision = K.exp(-s)
-    return K.sum(precision * (y_true - y_pred) ** 2. + s, -1)
+    return K.mean(K.sum(precision * (y_true - y_pred) ** 2. + s, -1))
 
 
 def weighted_squared_error_wpqr(y_true, y_pred):    
     s = -5.4678597
     precision = K.exp(-s)
-    return K.sum(precision * (y_true - y_pred) ** 2. + s, -1)
+    return K.mean(K.sum(precision * (y_true - y_pred) ** 2. + s, -1))
 
 
 # Custom loss layer
