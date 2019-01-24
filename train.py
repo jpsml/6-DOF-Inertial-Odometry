@@ -260,14 +260,18 @@ if do_training:
 
     #print([K.get_value(log_var[0]) for log_var in train_model.layers[-1].log_vars])
 
-#model = load_model('bidirectional_lstm.hdf5')
-model = load_model('bidirectional_lstm.hdf5', custom_objects={'weighted_squared_error_xyz':weighted_squared_error_xyz, 'weighted_squared_error_wpqr':weighted_squared_error_wpqr})
+model = load_model('bidirectional_lstm.hdf5')
+#model = load_model('bidirectional_lstm.hdf5', custom_objects={'weighted_squared_error_xyz':weighted_squared_error_xyz, 'weighted_squared_error_wpqr':weighted_squared_error_wpqr})
+#model = load_model('bidirectional_lstm_6D_quat_handheld_all_seqs_400_epochs.hdf5')
+#model = load_model('bidirectional_lstm_6D_quat_mtl_optimal_weights_handheld_all_seqs_400_epochs.hdf5', custom_objects={'weighted_squared_error_xyz':weighted_squared_error_xyz, 'weighted_squared_error_wpqr':weighted_squared_error_wpqr})
+#model = load_model('bidirectional_lstm_3D_handheld_all_seqs_400_epochs.hdf5')
 
 #x, [y_delta_l, y_delta_psi], init_l, init_psi = load_dataset_2d('Oxford Inertial Tracking Dataset/multi users/user2/syn/imu1.csv', 'Oxford Inertial Tracking Dataset/multi users/user2/syn/vi1.csv', window_size, stride)
 
 #x, [y_delta_l, y_delta_theta, y_delta_psi], init_l, init_theta, init_psi = load_dataset_3d('Oxford Inertial Tracking Dataset/multi users/user2/syn/imu1.csv', 'Oxford Inertial Tracking Dataset/multi users/user2/syn/vi1.csv', window_size, stride)
 
 x, [y_delta_p, y_delta_q], init_p, init_q = load_dataset_6d_quat('Oxford Inertial Tracking Dataset/multi users/user2/syn/imu1.csv', 'Oxford Inertial Tracking Dataset/multi users/user2/syn/vi1.csv', window_size, stride)
+#x, [y_delta_p, y_delta_q], init_p, init_q = load_dataset_6d_quat('Oxford Inertial Tracking Dataset/multi users/user2/syn/imu2.csv', 'Oxford Inertial Tracking Dataset/multi users/user2/syn/vi2.csv', window_size, stride)
 
 #x, [y_delta_rvec, y_delta_tvec], init_rvec, init_tvec = load_dataset_6d_rvec('Oxford Inertial Tracking Dataset/multi users/user2/syn/imu1.csv', 'Oxford Inertial Tracking Dataset/multi users/user2/syn/vi1.csv', window_size, stride)
 
