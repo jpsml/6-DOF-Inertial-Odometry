@@ -269,7 +269,6 @@ if do_training:
 #model = load_model('bidirectional_lstm.hdf5')
 
 #model = load_model('bidirectional_lstm_pred.hdf5')
-#model.compile(optimizer=Adam(0.0001), loss=[weighted_squared_error_xyz, weighted_squared_error_wpqr])
 
 #model = load_model('bidirectional_lstm.hdf5', custom_objects={'weighted_squared_error_xyz':weighted_squared_error_xyz, 'weighted_squared_error_wpqr':weighted_squared_error_wpqr})
 #model = load_model('bidirectional_lstm_6D_quat_handheld_all_seqs_400_epochs.hdf5')
