@@ -8,14 +8,16 @@ def weighted_squared_error_xyz(y_true, y_pred):
     s = -8.392255
     precision = K.exp(-s)
     #return K.mean(K.sum(precision * (y_true - y_pred) ** 2. + s, -1))
-    return K.sum(precision * (y_true - y_pred) ** 2., -1)  + s
+    #return K.sum(precision * (y_true - y_pred) ** 2., -1) + s
+    return K.mean(K.sum(precision * (y_true - y_pred) ** 2., -1) + s)
 
 
 def weighted_squared_error_wpqr(y_true, y_pred):    
     s = -5.4678597
     precision = K.exp(-s)
     #return K.mean(K.sum(precision * (y_true - y_pred) ** 2. + s, -1))
-    return K.sum(precision * (y_true - y_pred) ** 2., -1)  + s
+    #return K.sum(precision * (y_true - y_pred) ** 2., -1) + s
+    return K.mean(K.sum(precision * (y_true - y_pred) ** 2., -1) + s)
 
 
 # Custom loss layer

@@ -241,7 +241,8 @@ if do_training:
     train_model = create_train_model_6d_quat(pred_model, window_size)
     train_model.compile(optimizer=Adam(0.0001), loss=None)
 
-    model_checkpoint = ModelCheckpoint('bidirectional_lstm.hdf5', monitor='val_loss', save_best_only=True, verbose=1)
+    #model_checkpoint = ModelCheckpoint('bidirectional_lstm.hdf5', monitor='val_loss', save_best_only=True, verbose=1)
+    model_checkpoint = ModelCheckpoint('bidirectional_lstm_log_var.hdf5', monitor='val_loss', save_best_only=True, verbose=1)
     tensorboard = TensorBoard(log_dir="logs/{}".format(time()))
 
     #history = model.fit(x, [y_delta_l, y_delta_psi], epochs=400, batch_size=512, verbose=1, callbacks=[model_checkpoint], validation_split=0.1)
@@ -259,11 +260,17 @@ if do_training:
     #plt.legend(['Train', 'Validation'], loc='upper left')
     #plt.show()
 
-    train_model = load_model('bidirectional_lstm.hdf5', custom_objects={'CustomMultiLossLayer':CustomMultiLossLayer}, compile=False)
+    train_model = load_model('bidirectional_lstm_log_var.hdf5', custom_objects={'CustomMultiLossLayer':CustomMultiLossLayer}, compile=False)
 
     print([K.get_value(log_var[0]) for log_var in train_model.layers[-1].log_vars])
 
+    pred_model.save('bidirectional_lstm_pred.hdf5')
+
 #model = load_model('bidirectional_lstm.hdf5')
+
+#model = load_model('bidirectional_lstm_pred.hdf5')
+#model.compile(optimizer=Adam(0.0001), loss=[weighted_squared_error_xyz, weighted_squared_error_wpqr])
+
 #model = load_model('bidirectional_lstm.hdf5', custom_objects={'weighted_squared_error_xyz':weighted_squared_error_xyz, 'weighted_squared_error_wpqr':weighted_squared_error_wpqr})
 #model = load_model('bidirectional_lstm_6D_quat_handheld_all_seqs_400_epochs.hdf5')
 #model = load_model('bidirectional_lstm_6D_quat_mtl_optimal_weights_handheld_all_seqs_400_epochs.hdf5', custom_objects={'weighted_squared_error_xyz':weighted_squared_error_xyz, 'weighted_squared_error_wpqr':weighted_squared_error_wpqr})
