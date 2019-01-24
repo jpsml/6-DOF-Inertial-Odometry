@@ -1,5 +1,5 @@
 from keras.models import Sequential, Model
-from keras.layers import Bidirectional, CuDNNLSTM, Dropout, Dense, Input, Layer
+from keras.layers import Bidirectional, LSTM, CuDNNLSTM, Dropout, Dense, Input, Layer
 from keras.initializers import Constant
 from keras.optimizers import Adam
 from keras import backend as K
@@ -40,8 +40,8 @@ class CustomMultiLossLayer(Layer):
             precision = K.exp(-log_var[0])
             #loss += K.sum(precision * (y_true - y_pred)**2. + log_var[0], -1)
             loss += K.sum(precision * (y_true - y_pred)**2., -1) + log_var[0]
-        #return K.mean(loss)
-        return loss
+        return K.mean(loss)
+        #return loss
 
     def call(self, inputs):
         ys_true = inputs[:self.nb_outputs]
@@ -54,9 +54,11 @@ class CustomMultiLossLayer(Layer):
 
 def create_pred_model_6d_quat(window_size=200):
     inp = Input((window_size, 6), name='inp')
-    lstm1 = Bidirectional(CuDNNLSTM(128, return_sequences=True))(inp)    
+    #lstm1 = Bidirectional(CuDNNLSTM(128, return_sequences=True))(inp)
+    lstm1 = Bidirectional(LSTM(128, return_sequences=True))(inp)
     drop1 = Dropout(0.25)(lstm1)
-    lstm2 = Bidirectional(CuDNNLSTM(128))(drop1)    
+    #lstm2 = Bidirectional(CuDNNLSTM(128))(drop1)
+    lstm2 = Bidirectional(LSTM(128))(drop1)
     drop2 = Dropout(0.25)(lstm2)    
     y1_pred = Dense(3)(drop2)
     y2_pred = Dense(4)(drop2)

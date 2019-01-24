@@ -5,11 +5,13 @@ import cv2
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.animation import FuncAnimation
 
-from keras.callbacks import ModelCheckpoint
+from keras.callbacks import ModelCheckpoint, TensorBoard
 from keras.models import load_model
 from keras.optimizers import Adam
 
 from sklearn.utils import shuffle
+
+from time import time
 
 from dataset import *
 from model import *
@@ -240,13 +242,14 @@ if do_training:
     train_model.compile(optimizer=Adam(0.0001), loss=None)
 
     model_checkpoint = ModelCheckpoint('bidirectional_lstm.hdf5', monitor='val_loss', save_best_only=True, verbose=1)
+    tensorboard = TensorBoard(log_dir="logs/{}".format(time()))
 
     #history = model.fit(x, [y_delta_l, y_delta_psi], epochs=400, batch_size=512, verbose=1, callbacks=[model_checkpoint], validation_split=0.1)
     #history = model.fit(x, [y_delta_l, y_delta_theta, y_delta_psi], epochs=400, batch_size=512, verbose=1, callbacks=[model_checkpoint], validation_split=0.1)
     #history = model.fit(x, [y_delta_p, y_delta_q], epochs=400, batch_size=512, verbose=1, callbacks=[model_checkpoint], validation_split=0.1)
     #history = model.fit(x, [y_delta_rvec, y_delta_tvec], epochs=200, batch_size=512, verbose=1, callbacks=[model_checkpoint], validation_split=0.1)
 
-    history = train_model.fit([x, y_delta_p, y_delta_q], epochs=1000, batch_size=512, verbose=1, callbacks=[model_checkpoint], validation_split=0.1)
+    history = train_model.fit([x, y_delta_p, y_delta_q], epochs=1000, batch_size=512, verbose=1, callbacks=[model_checkpoint, tensorboard], validation_split=0.1)
 
     #plt.plot(history.history['loss'])
     #plt.plot(history.history['val_loss'])
