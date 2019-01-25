@@ -23,11 +23,6 @@ np.random.seed(0)
 window_size = 200
 stride = 10
 
-#train_model = load_model('bidirectional_lstm_log_var.hdf5', custom_objects={'CustomMultiLossLayer':CustomMultiLossLayer}, compile=False)
-#pred_model = create_pred_model_6d_quat(window_size)
-#pred_model.set_weights(train_model.get_weights()[:-2])
-#pred_model.save('bidirectional_lstm_pred.hdf5')
-
 x = []
 
 y_delta_p = []
@@ -128,7 +123,7 @@ y_delta_q = np.vstack(y_delta_q)
 
 x, y_delta_p, y_delta_q = shuffle(x, y_delta_p, y_delta_q)
 
-do_training = False
+do_training = True
 
 if do_training:
     #model = create_model_6d_quat(window_size)
@@ -156,19 +151,23 @@ if do_training:
 
     print([K.get_value(log_var[0]) for log_var in train_model.layers[-1].log_vars])
 
+    pred_model = create_pred_model_6d_quat(window_size)
+    pred_model.set_weights(train_model.get_weights()[:-2])
+    pred_model.save('bidirectional_lstm_pred.hdf5')
+
 #model = load_model('bidirectional_lstm.hdf5')
 #model = load_model('bidirectional_lstm_pred.hdf5')
-model = load_model('bidirectional_lstm_mtl_pred_6D_handheld_all_seqs_1000_epochs.hdf5')
+#model = load_model('bidirectional_lstm_mtl_pred_6D_handheld_all_seqs_1000_epochs.hdf5')
 #model = load_model('bidirectional_lstm_6D_quat_handheld_all_seqs_400_epochs.hdf5')
 
-x, [y_delta_p, y_delta_q], init_p, init_q = load_dataset_6d_quat('Oxford Inertial Tracking Dataset/multi users/user2/syn/imu1.csv', 'Oxford Inertial Tracking Dataset/multi users/user2/syn/vi1.csv', window_size, stride)
-#x, [y_delta_p, y_delta_q], init_p, init_q = load_dataset_6d_quat('Oxford Inertial Tracking Dataset/multi users/user2/syn/imu6.csv', 'Oxford Inertial Tracking Dataset/multi users/user2/syn/vi6.csv', window_size, stride)
+#x, [y_delta_p, y_delta_q], init_p, init_q = load_dataset_6d_quat('Oxford Inertial Tracking Dataset/multi users/user2/syn/imu1.csv', 'Oxford Inertial Tracking Dataset/multi users/user2/syn/vi1.csv', window_size, stride)
+#x, [y_delta_p, y_delta_q], init_p, init_q = load_dataset_6d_quat('Oxford Inertial Tracking Dataset/multi users/user2/syn/imu3.csv', 'Oxford Inertial Tracking Dataset/multi users/user2/syn/vi3.csv', window_size, stride)
 
-[yhat_delta_p, yhat_delta_q] = model.predict(x, batch_size=1, verbose=1)
+#[yhat_delta_p, yhat_delta_q] = model.predict(x, batch_size=1, verbose=1)
 #[yhat_delta_p, yhat_delta_q] = model.predict(x, batch_size=512, verbose=1)
 
-gt_trajectory = generate_trajectory_6d_quat(init_p, init_q, y_delta_p, y_delta_q)
-pred_trajectory = generate_trajectory_6d_quat(init_p, init_q, yhat_delta_p, yhat_delta_q)
+#gt_trajectory = generate_trajectory_6d_quat(init_p, init_q, y_delta_p, y_delta_q)
+#pred_trajectory = generate_trajectory_6d_quat(init_p, init_q, yhat_delta_p, yhat_delta_q)
 
 #fig = plt.figure()
 #ax = fig.gca(projection='3d')
@@ -201,27 +200,27 @@ pred_trajectory = generate_trajectory_6d_quat(init_p, init_q, yhat_delta_p, yhat
 ##ani = FuncAnimation(fig, update_trajectories, frames=gt_trajectory.shape[0], interval=100, blit=True)
 #ani = FuncAnimation(fig, update_trajectories, frames=1200, interval=100, blit=True)
 
-fig = plt.figure()
-ax = fig.gca(projection='3d')
-#ax.plot(gt_trajectory[:, 0], gt_trajectory[:, 1], gt_trajectory[:, 2])
-#ax.plot(pred_trajectory[:, 0], pred_trajectory[:, 1], pred_trajectory[:, 2])
-ax.plot(gt_trajectory[0:200, 0], gt_trajectory[0:200, 1], gt_trajectory[0:200, 2])
-ax.plot(pred_trajectory[0:200, 0], pred_trajectory[0:200, 1], pred_trajectory[0:200, 2])
-ax.set_title('Trajectory Pred vs Ground Truth');
-ax.set_xlabel('X (m)')
-ax.set_ylabel('Y (m)')
-ax.set_zlabel('Z (m)')
-#min_lim = np.minimum(np.amin(gt_trajectory), np.amin(pred_trajectory))
-#max_lim = np.maximum(np.amax(gt_trajectory), np.amax(pred_trajectory))
-min_lim = np.minimum(np.amin(gt_trajectory[0:200, :]), np.amin(pred_trajectory[0:200, :]))
-max_lim = np.maximum(np.amax(gt_trajectory[0:200, :]), np.amax(pred_trajectory[0:200, :]))
-ax.set_xlim(min_lim, max_lim)
-ax.set_ylim(min_lim, max_lim)
-ax.set_zlim(min_lim, max_lim)
-ax.legend(['Trajectory Ground Truth', 'Trajectory Pred'], loc='upper left')
+#fig = plt.figure()
+#ax = fig.gca(projection='3d')
+##ax.plot(gt_trajectory[:, 0], gt_trajectory[:, 1], gt_trajectory[:, 2])
+##ax.plot(pred_trajectory[:, 0], pred_trajectory[:, 1], pred_trajectory[:, 2])
+#ax.plot(gt_trajectory[0:200, 0], gt_trajectory[0:200, 1], gt_trajectory[0:200, 2])
+#ax.plot(pred_trajectory[0:200, 0], pred_trajectory[0:200, 1], pred_trajectory[0:200, 2])
+#ax.set_title('Trajectory Pred vs Ground Truth');
+#ax.set_xlabel('X (m)')
+#ax.set_ylabel('Y (m)')
+#ax.set_zlabel('Z (m)')
+##min_lim = np.minimum(np.amin(gt_trajectory), np.amin(pred_trajectory))
+##max_lim = np.maximum(np.amax(gt_trajectory), np.amax(pred_trajectory))
+#min_lim = np.minimum(np.amin(gt_trajectory[0:200, :]), np.amin(pred_trajectory[0:200, :]))
+#max_lim = np.maximum(np.amax(gt_trajectory[0:200, :]), np.amax(pred_trajectory[0:200, :]))
+#ax.set_xlim(min_lim, max_lim)
+#ax.set_ylim(min_lim, max_lim)
+#ax.set_zlim(min_lim, max_lim)
+#ax.legend(['Trajectory Ground Truth', 'Trajectory Pred'], loc='upper left')
 
-plt.show()
+#plt.show()
 
-#trajectory_rmse = np.sqrt(np.mean(np.square(pred_trajectory - gt_trajectory)))
-trajectory_rmse = np.sqrt(np.mean(np.square(pred_trajectory[0:200, :] - gt_trajectory[0:200, :])))
-print('trajectory rmse (m): ', trajectory_rmse)
+##trajectory_rmse = np.sqrt(np.mean(np.square(pred_trajectory - gt_trajectory)))
+#trajectory_rmse = np.sqrt(np.mean(np.square(pred_trajectory[0:200, :] - gt_trajectory[0:200, :])))
+#print('trajectory rmse (m): ', trajectory_rmse)
