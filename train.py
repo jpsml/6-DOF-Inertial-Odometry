@@ -110,6 +110,16 @@ gt_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data5/syn/vi
 for i, (cur_imu_data_filename, cur_gt_data_filename) in enumerate(zip(imu_data_filenames, gt_data_filenames)):
     cur_x, [cur_y_delta_p, cur_y_delta_q], init_p, init_q = load_dataset_6d_quat(cur_imu_data_filename, cur_gt_data_filename, window_size, stride)
 
+    #plt.plot(cur_y_delta_p[:, 0])
+    #plt.plot(cur_y_delta_p[:, 1])
+    #plt.plot(cur_y_delta_p[:, 2])
+    #plt.plot(cur_y_delta_q[:, 0])
+    #plt.plot(cur_y_delta_q[:, 1])
+    #plt.plot(cur_y_delta_q[:, 2])
+    #plt.plot(cur_y_delta_q[:, 3])
+    #plt.legend(['delta_p_x', 'delta_p_y', 'delta_p_z', 'delta_q_w', 'delta_q_x', 'delta_q_y', 'delta_q_z'], loc='upper left')
+    #plt.show()
+
     x.append(cur_x)
 
     y_delta_p.append(cur_y_delta_p)
@@ -171,8 +181,8 @@ if do_training:
 
 #fig = plt.figure()
 #ax = fig.gca(projection='3d')
-#ax.plot(gt_trajectory[:, 0], gt_trajectory[:, 1], gt_trajectory[:, 2])
-##ax.plot(gt_trajectory[0:200, 0], gt_trajectory[0:200, 1], gt_trajectory[0:200, 2])
+##ax.plot(gt_trajectory[:, 0], gt_trajectory[:, 1], gt_trajectory[:, 2])
+#ax.plot(gt_trajectory[0:200, 0], gt_trajectory[0:200, 1], gt_trajectory[0:200, 2])
 #ax.set_title('Trajectory Ground Truth');
 #ax.set_xlabel('X (m)')
 #ax.set_ylabel('Y (m)')

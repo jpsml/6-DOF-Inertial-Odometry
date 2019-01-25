@@ -5,6 +5,33 @@ import cv2
 
 from keras.utils import Sequence
 
+
+def force_quaternion_uniqueness(q):
+
+    q_data = quaternion.as_float_array(q)
+
+    if np.absolute(q_data[0]) > 1e-05:
+        if q_data[0] < 0:
+            return -q
+        else:
+            return q
+    elif np.absolute(q_data[1]) > 1e-05:
+        if q_data[1] < 0:
+            return -q
+        else:
+            return q
+    elif np.absolute(q_data[2]) > 1e-05:
+        if q_data[2] < 0:
+            return -q
+        else:
+            return q
+    else:
+        if q_data[3] < 0:
+            return -q
+        else:
+            return q
+
+
 def cartesian_to_spherical_coordinates(point_cartesian):
     delta_l = np.linalg.norm(point_cartesian)
 
@@ -107,7 +134,7 @@ def load_dataset_6d_quat(imu_data_filename, gt_data_filename, window_size=200, s
 
         delta_p = np.matmul(quaternion.as_rotation_matrix(q_a).T, (p_b.T - p_a.T)).T
 
-        delta_q = q_a.conjugate() * q_b
+        delta_q = force_quaternion_uniqueness(q_a.conjugate() * q_b)
 
         y_delta_p.append(delta_p)
         y_delta_q.append(quaternion.as_float_array(delta_q))
