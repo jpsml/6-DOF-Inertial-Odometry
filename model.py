@@ -9,7 +9,7 @@ from keras import backend as K
 
 def quaternion_multiplicative_error(y_true, y_pred):
     q_hat = tfq.Quaternion(y_true)
-    q = tfq.Quaternion(y_pred)
+    q = tfq.Quaternion(y_pred).normalized()
     q_prod = q * q_hat.conjugate()
     w, x, y, z = tf.split(q_prod, num_or_size_splits=4, axis=-1)
     return tf.reduce_mean(tf.abs(tf.multiply(2.0, tf.concat(values=[x, y, z], axis=-1))))
