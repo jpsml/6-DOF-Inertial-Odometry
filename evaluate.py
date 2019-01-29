@@ -4,13 +4,14 @@ from keras.models import load_model
 
 from dataset import *
 from util import *
+from model import *
 
 
-#model_filename = 'bidirectional_lstm_mtl_pred_6D_handheld_all_seqs_1000_epochs.hdf5'
-#model_filename = 'bidirectional_lstm_6D_quat_handheld_all_seqs_400_epochs.hdf5'
-model_filename = 'bidirectional_lstm_pred.hdf5'
+#model_filename = 'bidirectional_lstm_pred.hdf5'
+model_filename = 'bidirectional_lstm.hdf5'
 
-model = load_model(model_filename)
+#model = load_model(model_filename)
+model = load_model('bidirectional_lstm.hdf5', custom_objects={'quaternion_multiplicative_error':quaternion_multiplicative_error})
 
 window_size = 200
 stride = 10
