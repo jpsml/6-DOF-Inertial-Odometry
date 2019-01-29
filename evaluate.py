@@ -11,7 +11,7 @@ from model import *
 model_filename = 'bidirectional_lstm.hdf5'
 
 #model = load_model(model_filename)
-model = load_model('bidirectional_lstm.hdf5', custom_objects={'quaternion_multiplicative_error':quaternion_multiplicative_error})
+model = load_model('bidirectional_lstm.hdf5', custom_objects={'quaternion_mean_multiplicative_error':quaternion_mean_multiplicative_error})
 
 window_size = 200
 stride = 10

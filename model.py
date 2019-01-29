@@ -7,27 +7,17 @@ from keras.initializers import Constant
 from keras.optimizers import Adam
 from keras import backend as K
 
-def quaternion_multiplicative_error(y_true, y_pred):
+
+def quat_mult_error(y_true, y_pred):
     q_hat = tfq.Quaternion(y_true)
     q = tfq.Quaternion(y_pred).normalized()
     q_prod = q * q_hat.conjugate()
     w, x, y, z = tf.split(q_prod, num_or_size_splits=4, axis=-1)
-    return tf.reduce_mean(tf.abs(tf.multiply(2.0, tf.concat(values=[x, y, z], axis=-1))))
-
-def weighted_squared_error_xyz(y_true, y_pred):
-    s = -8.392255
-    precision = K.exp(-s)
-    #return K.mean(K.sum(precision * (y_true - y_pred) ** 2. + s, -1))
-    #return K.sum(precision * (y_true - y_pred) ** 2., -1) + s
-    return K.mean(K.sum(precision * (y_true - y_pred) ** 2., -1) + s)
+    return tf.abs(tf.multiply(2.0, tf.concat(values=[x, y, z], axis=-1)))
 
 
-def weighted_squared_error_wpqr(y_true, y_pred):    
-    s = -5.4678597
-    precision = K.exp(-s)
-    #return K.mean(K.sum(precision * (y_true - y_pred) ** 2. + s, -1))
-    #return K.sum(precision * (y_true - y_pred) ** 2., -1) + s
-    return K.mean(K.sum(precision * (y_true - y_pred) ** 2., -1) + s)
+def quaternion_mean_multiplicative_error(y_true, y_pred):
+    return tf.reduce_mean(quat_mult_error(y_true, y_pred))
 
 
 # Custom loss layer
@@ -48,12 +38,17 @@ class CustomMultiLossLayer(Layer):
     def multi_loss(self, ys_true, ys_pred):
         assert len(ys_true) == self.nb_outputs and len(ys_pred) == self.nb_outputs
         loss = 0
-        for y_true, y_pred, log_var in zip(ys_true, ys_pred, self.log_vars):
-            precision = K.exp(-log_var[0])
-            #loss += K.sum(precision * (y_true - y_pred)**2. + log_var[0], -1)
-            loss += K.sum(precision * (y_true - y_pred)**2., -1) + log_var[0]
+
+        #for y_true, y_pred, log_var in zip(ys_true, ys_pred, self.log_vars):
+        #    precision = K.exp(-log_var[0])
+        #    loss += K.sum(precision * (y_true - y_pred)**2., -1) + log_var[0]
+
+        precision = K.exp(-self.log_vars[0][0])
+        loss += K.sum(precision * K.abs(ys_pred[0] - ys_true[0]), -1) + self.log_vars[0][0]
+        precision = K.exp(-self.log_vars[1][0])
+        loss += K.sum(precision * quat_mult_error(ys_true[1], ys_pred[1]), -1) + self.log_vars[1][0]
+
         return K.mean(loss)
-        #return loss
 
     def call(self, inputs):
         ys_true = inputs[:self.nb_outputs]
@@ -118,7 +113,7 @@ def create_model_6d_quat(window_size=200):
     model.summary()
     #model.compile(optimizer = Adam(0.0001), loss = 'mean_squared_error')
     #model.compile(optimizer = Adam(0.0001), loss = [weighted_squared_error_xyz, weighted_squared_error_wpqr])
-    model.compile(optimizer = Adam(0.0001), loss = ['mean_absolute_error', quaternion_multiplicative_error])
+    model.compile(optimizer = Adam(0.0001), loss = ['mean_absolute_error', quaternion_mean_multiplicative_error])
     
     return model
 
