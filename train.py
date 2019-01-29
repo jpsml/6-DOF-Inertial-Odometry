@@ -165,7 +165,8 @@ if do_training:
     #pred_model.set_weights(train_model.get_weights()[:-2])
     #pred_model.save('bidirectional_lstm_pred.hdf5')
 
-model = load_model('bidirectional_lstm.hdf5')
+#model = load_model('bidirectional_lstm.hdf5')
+model = load_model('bidirectional_lstm.hdf5', custom_objects={'quaternion_multiplicative_error':quaternion_multiplicative_error})
 #model = load_model('bidirectional_lstm_pred.hdf5')
 #model = load_model('bidirectional_lstm_mtl_pred_6D_handheld_all_seqs_1000_epochs.hdf5')
 #model = load_model('bidirectional_lstm_6D_quat_handheld_all_seqs_400_epochs.hdf5')
