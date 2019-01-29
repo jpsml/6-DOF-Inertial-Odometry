@@ -1,8 +1,18 @@
+import tfquaternion as tfq
+import tensorflow as tf
+
 from keras.models import Sequential, Model
 from keras.layers import Bidirectional, LSTM, CuDNNLSTM, Dropout, Dense, Input, Layer
 from keras.initializers import Constant
 from keras.optimizers import Adam
 from keras import backend as K
+
+def quaternion_multiplicative_error(y_true, y_pred):
+    q_hat = tfq.Quaternion(y_true)
+    q = tfq.Quaternion(y_pred)
+    q_prod = q * q_hat.conjugate()
+    w, x, y, z = tf.split(q_prod, num_or_size_splits=4, axis=-1)
+    return tf.reduce_mean(tf.multiply(2.0, tf.concat(values=[x, y, z], axis=-1)))
 
 def weighted_squared_error_xyz(y_true, y_pred):
     s = -8.392255
@@ -107,7 +117,8 @@ def create_model_6d_quat(window_size=200):
     model = Model(inputs = input_gyro_acc, outputs = [output_delta_p, output_delta_q])
     model.summary()
     #model.compile(optimizer = Adam(0.0001), loss = 'mean_squared_error')
-    model.compile(optimizer = Adam(0.0001), loss = [weighted_squared_error_xyz, weighted_squared_error_wpqr])
+    #model.compile(optimizer = Adam(0.0001), loss = [weighted_squared_error_xyz, weighted_squared_error_wpqr])
+    model.compile(optimizer = Adam(0.0001), loss = ['mean_absolute_error', quaternion_multiplicative_error])
     
     return model
 
