@@ -5,17 +5,28 @@ import cv2
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.animation import FuncAnimation
 
-from keras.callbacks import ModelCheckpoint, TensorBoard
+from keras.callbacks import ModelCheckpoint, LearningRateScheduler, TensorBoard
 from keras.models import load_model
 from keras.optimizers import Adam
 
 from sklearn.utils import shuffle
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.externals import joblib
 
 from time import time
 
 from dataset import *
 from model import *
 from util import *
+
+
+def step_decay(epoch, lr):
+    print('epoch: ', epoch)
+    print('learning rate: ', lr)
+    if epoch > 0 and epoch % 10 == 0:
+        return lr * 0.5
+    else:
+        return lr
 
 
 np.random.seed(0)
@@ -131,23 +142,32 @@ x = np.vstack(x)
 y_delta_p = np.vstack(y_delta_p)
 y_delta_q = np.vstack(y_delta_q)
 
+scaler = MinMaxScaler(feature_range=(0, 1))
+x_2d = x.reshape(x.shape[0] * x.shape[1], x.shape[2])
+scaler = scaler.fit(x_2d)
+x_2d = scaler.transform(x_2d)
+x = x_2d.reshape(x.shape[0], x.shape[1], x.shape[2])
+joblib.dump(scaler, 'scaler.save')
+
 x, y_delta_p, y_delta_q = shuffle(x, y_delta_p, y_delta_q)
 
 do_training = True
 
 if do_training:
-    #model = create_model_6d_quat(window_size)
+    model = create_model_6d_quat(window_size)
 
-    pred_model = create_pred_model_6d_quat(window_size)
-    train_model = create_train_model_6d_quat(pred_model, window_size)
-    train_model.compile(optimizer=Adam(0.0001), loss=None)
+    #pred_model = create_pred_model_6d_quat(window_size)
+    #train_model = create_train_model_6d_quat(pred_model, window_size)
+    ##train_model.compile(optimizer=Adam(0.0001), loss=None)
+    #train_model.compile(optimizer='adam', loss=None)
 
-    #model_checkpoint = ModelCheckpoint('bidirectional_lstm.hdf5', monitor='val_loss', save_best_only=True, verbose=1)
-    model_checkpoint = ModelCheckpoint('bidirectional_lstm_log_var.hdf5', monitor='val_loss', save_best_only=True, verbose=1)
+    model_checkpoint = ModelCheckpoint('bidirectional_lstm.hdf5', monitor='val_loss', save_best_only=True, verbose=1)
+    #model_checkpoint = ModelCheckpoint('bidirectional_lstm_log_var.hdf5', monitor='val_loss', save_best_only=True, verbose=1)
+    learning_rate_scheduler = LearningRateScheduler(step_decay)
     tensorboard = TensorBoard(log_dir="logs/{}".format(time()))
 
-    #history = model.fit(x, [y_delta_p, y_delta_q], epochs=400, batch_size=512, verbose=1, callbacks=[model_checkpoint, tensorboard], validation_split=0.1)
-    history = train_model.fit([x, y_delta_p, y_delta_q], epochs=1000, batch_size=512, verbose=1, callbacks=[model_checkpoint, tensorboard], validation_split=0.1)
+    history = model.fit(x, [y_delta_p, y_delta_q], epochs=400, batch_size=512, verbose=1, callbacks=[model_checkpoint, learning_rate_scheduler, tensorboard], validation_split=0.1)
+    #history = train_model.fit([x, y_delta_p, y_delta_q], epochs=1000, batch_size=512, verbose=1, callbacks=[model_checkpoint, learning_rate_scheduler, tensorboard], validation_split=0.1)
 
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
@@ -157,21 +177,27 @@ if do_training:
     plt.legend(['Train', 'Validation'], loc='upper left')
     plt.show()
 
-    train_model = load_model('bidirectional_lstm_log_var.hdf5', custom_objects={'CustomMultiLossLayer':CustomMultiLossLayer}, compile=False)
+    #train_model = load_model('bidirectional_lstm_log_var.hdf5', custom_objects={'CustomMultiLossLayer':CustomMultiLossLayer}, compile=False)
 
-    print([K.get_value(log_var[0]) for log_var in train_model.layers[-1].log_vars])
+    #print([K.get_value(log_var[0]) for log_var in train_model.layers[-1].log_vars])
 
-    pred_model = create_pred_model_6d_quat(window_size)
-    pred_model.set_weights(train_model.get_weights()[:-2])
-    pred_model.save('bidirectional_lstm_pred.hdf5')
+    #pred_model = create_pred_model_6d_quat(window_size)
+    #pred_model.set_weights(train_model.get_weights()[:-2])
+    #pred_model.save('bidirectional_lstm_pred.hdf5')
 
 #model = load_model('bidirectional_lstm.hdf5')
-#model = load_model('bidirectional_lstm.hdf5', custom_objects={'quaternion_mean_multiplicative_error':quaternion_mean_multiplicative_error})
-model = load_model('bidirectional_lstm_pred.hdf5')
+model = load_model('bidirectional_lstm.hdf5', custom_objects={'quaternion_mean_multiplicative_error':quaternion_mean_multiplicative_error})
+#model = load_model('bidirectional_lstm_pred.hdf5')
 #model = load_model('bidirectional_lstm_mtl_pred_6D_handheld_all_seqs_1000_epochs.hdf5')
 #model = load_model('bidirectional_lstm_6D_quat_handheld_all_seqs_400_epochs.hdf5')
 
+scaler = joblib.load('scaler.save')
+
 x, [y_delta_p, y_delta_q], init_p, init_q = load_dataset_6d_quat('Oxford Inertial Tracking Dataset/handheld/data2/syn/imu1.csv', 'Oxford Inertial Tracking Dataset/handheld/data2/syn/vi1.csv', window_size, stride)
+
+x_2d = x.reshape(x.shape[0] * x.shape[1], x.shape[2])
+x_2d = scaler.transform(x_2d)
+x = x_2d.reshape(x.shape[0], x.shape[1], x.shape[2])
 
 [yhat_delta_p, yhat_delta_q] = model.predict(x, batch_size=1, verbose=1)
 
