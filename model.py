@@ -116,8 +116,7 @@ def create_model_6d_quat(window_size=200):
     model.summary()
     #model.compile(optimizer = Adam(0.0001), loss = 'mean_squared_error')
     #model.compile(optimizer = Adam(0.0001), loss = [weighted_squared_error_xyz, weighted_squared_error_wpqr])
-    #model.compile(optimizer = Adam(0.0001), loss = ['mean_absolute_error', quaternion_mean_multiplicative_error])
-    model.compile(optimizer = 'adam', loss = ['mean_absolute_error', quaternion_mean_multiplicative_error])
+    model.compile(optimizer = Adam(0.0001), loss = ['mean_absolute_error', quaternion_mean_multiplicative_error])
     
     return model
 
