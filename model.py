@@ -5,6 +5,7 @@ from keras.models import Sequential, Model
 from keras.layers import Bidirectional, LSTM, CuDNNLSTM, Dropout, Dense, Input, Layer
 from keras.initializers import Constant
 from keras.optimizers import Adam
+from keras.losses import mean_absolute_error
 from keras import backend as K
 
 
@@ -44,9 +45,11 @@ class CustomMultiLossLayer(Layer):
         #    loss += K.sum(precision * (y_true - y_pred)**2., -1) + log_var[0]
 
         precision = K.exp(-self.log_vars[0][0])
-        loss += K.sum(precision * K.abs(ys_pred[0] - ys_true[0]), -1) + self.log_vars[0][0]
+        #loss += K.sum(precision * K.abs(ys_pred[0] - ys_true[0]), -1) + self.log_vars[0][0]
+        loss += precision * mean_absolute_error(ys_true[0], ys_pred[0]) + self.log_vars[0][0]
         precision = K.exp(-self.log_vars[1][0])
-        loss += K.sum(precision * quat_mult_error(ys_true[1], ys_pred[1]), -1) + self.log_vars[1][0]
+        #loss += K.sum(precision * quat_mult_error(ys_true[1], ys_pred[1]), -1) + self.log_vars[1][0]
+        loss += precision * quaternion_mean_multiplicative_error(ys_true[1], ys_pred[1]) + self.log_vars[1][0]
 
         return K.mean(loss)
 
