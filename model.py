@@ -8,23 +8,12 @@ from keras.optimizers import Adam
 from keras.losses import mean_absolute_error
 from keras import backend as K
 
-
-def quaternion_phi_2_error(y_true, y_pred):
-    return K.minimum(K.sqrt(K.sum(K.square(K.l2_normalize(y_pred, axis=-1) - y_true), axis=-1)), K.sqrt(K.sum(K.square(y_pred + y_true), axis=-1)))
-
-
 def quaternion_phi_3_error(y_true, y_pred):
     return tf.acos(K.abs(K.batch_dot(y_true, K.l2_normalize(y_pred, axis=-1), axes=-1)))
 
 
 def quaternion_phi_4_error(y_true, y_pred):
     return 1 - K.abs(K.batch_dot(y_true, K.l2_normalize(y_pred, axis=-1), axes=-1))
-
-
-#def quaternion_phi_5_error(y_true, y_pred):
-#    R1 = tfq.Quaternion(y_true).as_rotation_matrix()
-#    R2 = tfq.Quaternion(y_pred).normalized().as_rotation_matrix()
-#    return (tf.eye(3) - tf.matmul(R1, tf.linalg.transpose(R2))).norm()
 
 
 def quaternion_log_phi_4_error(y_true, y_pred):
