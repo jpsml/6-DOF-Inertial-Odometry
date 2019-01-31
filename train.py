@@ -135,10 +135,8 @@ if do_training:
     #pred_model.save('bidirectional_lstm_pred.hdf5')
 
 #model = load_model('bidirectional_lstm.hdf5')
-model = load_model('bidirectional_lstm.hdf5', custom_objects={'quaternion_mean_multiplicative_error':quaternion_mean_multiplicative_error})
-#model = load_model('bidirectional_lstm_pred.hdf5')
-#model = load_model('bidirectional_lstm_mtl_pred_6D_handheld_all_seqs_1000_epochs.hdf5')
-#model = load_model('bidirectional_lstm_6D_quat_handheld_all_seqs_400_epochs.hdf5')
+#model = load_model('bidirectional_lstm.hdf5', custom_objects={'quaternion_mean_multiplicative_error':quaternion_mean_multiplicative_error})
+model = load_model('bidirectional_lstm.hdf5', custom_objects={'quaternion_log_phi_4_error':quaternion_log_phi_4_error})
 
 #scaler = joblib.load('scaler.save')
 
