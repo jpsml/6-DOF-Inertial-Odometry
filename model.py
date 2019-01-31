@@ -126,19 +126,13 @@ def create_model_6d_rvec(window_size=200):
 
 
 def create_model_6d_quat(window_size=200):
-    #input_gyro_acc = Input((window_size, 6))
-    #lstm1 = Bidirectional(CuDNNLSTM(128, return_sequences=True))(input_gyro_acc)    
-    #drop1 = Dropout(0.25)(lstm1)
-    #lstm2 = Bidirectional(CuDNNLSTM(128))(drop1)    
-    #drop2 = Dropout(0.25)(lstm2)    
-    #output_delta_p = Dense(3)(drop2)
-    #output_delta_q = Dense(4)(drop2)
-
     input_gyro_acc = Input((window_size, 6))
-    lstm1 = Bidirectional(CuDNNLSTM(128, return_sequences=True))(input_gyro_acc)
-    lstm2 = Bidirectional(CuDNNLSTM(128))(lstm1)
-    output_delta_p = Dense(3)(lstm2)
-    output_delta_q = Dense(4)(lstm2)
+    lstm1 = Bidirectional(CuDNNLSTM(128, return_sequences=True))(input_gyro_acc)    
+    drop1 = Dropout(0.25)(lstm1)
+    lstm2 = Bidirectional(CuDNNLSTM(128))(drop1)    
+    drop2 = Dropout(0.25)(lstm2)    
+    output_delta_p = Dense(3)(drop2)
+    output_delta_q = Dense(4)(drop2)
 
     model = Model(inputs = input_gyro_acc, outputs = [output_delta_p, output_delta_q])
     model.summary()
