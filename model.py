@@ -10,23 +10,21 @@ from keras import backend as K
 
 
 def quaternion_phi_2_error(y_true, y_pred):
-    return K.minimum(K.sqrt(K.sum(K.square(K.l2_normalize(y_pred) - y_true), axis=-1)), K.sqrt(K.sum(K.square(y_pred + y_true), axis=-1)))
+    return K.minimum(K.sqrt(K.sum(K.square(K.l2_normalize(y_pred, axis=-1) - y_true), axis=-1)), K.sqrt(K.sum(K.square(y_pred + y_true), axis=-1)))
 
 
 def quaternion_phi_3_error(y_true, y_pred):
-    return tf.acos(K.abs(K.batch_dot(y_true, K.l2_normalize(y_pred))))
+    return tf.acos(K.abs(K.batch_dot(y_true, K.l2_normalize(y_pred, axis=-1), axes=-1)))
 
 
 def quaternion_phi_4_error(y_true, y_pred):
-    return 1 - K.abs(K.batch_dot(y_true, K.l2_normalize(y_pred)))
+    return 1 - K.abs(K.batch_dot(y_true, K.l2_normalize(y_pred, axis=-1), axes=-1))
 
 
-def quaternion_phi_5_error(y_true, y_pred):
-    return 0
-
-
-def quaternion_phi_6_error(y_true, y_pred):
-    return 0
+#def quaternion_phi_5_error(y_true, y_pred):
+#    R1 = tfq.Quaternion(y_true).as_rotation_matrix()
+#    R2 = tfq.Quaternion(y_pred).normalized().as_rotation_matrix()
+#    return (tf.eye(3) - tf.matmul(R1, tf.linalg.transpose(R2))).norm()
 
 
 def quaternion_log_phi_4_error(y_true, y_pred):
@@ -146,8 +144,8 @@ def create_model_6d_quat(window_size=200):
     model.summary()
     #model.compile(optimizer = Adam(0.0001), loss = 'mean_squared_error')
     #model.compile(optimizer = Adam(0.0001), loss = [weighted_squared_error_xyz, weighted_squared_error_wpqr])
-    model.compile(optimizer = Adam(0.0001), loss = ['mean_absolute_error', quaternion_mean_multiplicative_error])
-    #model.compile(optimizer = Adam(0.0001), loss = ['mean_absolute_error', quaternion_log_phi_4_error])
+    #model.compile(optimizer = Adam(0.0001), loss = ['mean_absolute_error', quaternion_mean_multiplicative_error])
+    model.compile(optimizer = Adam(0.0001), loss = ['mean_absolute_error', quaternion_log_phi_4_error])
     
     return model
 
