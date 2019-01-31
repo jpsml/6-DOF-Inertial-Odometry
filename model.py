@@ -9,6 +9,30 @@ from keras.losses import mean_absolute_error
 from keras import backend as K
 
 
+def quaternion_phi_2_error(y_true, y_pred):
+    return K.minimum(K.sqrt(K.sum(K.square(K.l2_normalize(y_pred) - y_true), axis=-1)), K.sqrt(K.sum(K.square(y_pred + y_true), axis=-1)))
+
+
+def quaternion_phi_3_error(y_true, y_pred):
+    return tf.acos(K.abs(K.batch_dot(y_true, K.l2_normalize(y_pred))))
+
+
+def quaternion_phi_4_error(y_true, y_pred):
+    return 1 - K.abs(K.batch_dot(y_true, K.l2_normalize(y_pred)))
+
+
+def quaternion_phi_5_error(y_true, y_pred):
+    return 0
+
+
+def quaternion_phi_6_error(y_true, y_pred):
+    return 0
+
+
+def quaternion_log_phi_4_error(y_true, y_pred):
+    return K.log(1e-4 + quaternion_phi_4_error(y_true, y_pred))
+
+
 def quat_mult_error(y_true, y_pred):
     q_hat = tfq.Quaternion(y_true)
     q = tfq.Quaternion(y_pred).normalized()
@@ -104,19 +128,26 @@ def create_model_6d_rvec(window_size=200):
 
 
 def create_model_6d_quat(window_size=200):
+    #input_gyro_acc = Input((window_size, 6))
+    #lstm1 = Bidirectional(CuDNNLSTM(128, return_sequences=True))(input_gyro_acc)    
+    #drop1 = Dropout(0.25)(lstm1)
+    #lstm2 = Bidirectional(CuDNNLSTM(128))(drop1)    
+    #drop2 = Dropout(0.25)(lstm2)    
+    #output_delta_p = Dense(3)(drop2)
+    #output_delta_q = Dense(4)(drop2)
+
     input_gyro_acc = Input((window_size, 6))
-    lstm1 = Bidirectional(CuDNNLSTM(128, return_sequences=True))(input_gyro_acc)    
-    drop1 = Dropout(0.25)(lstm1)
-    lstm2 = Bidirectional(CuDNNLSTM(128))(drop1)    
-    drop2 = Dropout(0.25)(lstm2)    
-    output_delta_p = Dense(3)(drop2)
-    output_delta_q = Dense(4)(drop2)
+    lstm1 = Bidirectional(CuDNNLSTM(128, return_sequences=True))(input_gyro_acc)
+    lstm2 = Bidirectional(CuDNNLSTM(128))(lstm1)
+    output_delta_p = Dense(3)(lstm2)
+    output_delta_q = Dense(4)(lstm2)
 
     model = Model(inputs = input_gyro_acc, outputs = [output_delta_p, output_delta_q])
     model.summary()
     #model.compile(optimizer = Adam(0.0001), loss = 'mean_squared_error')
     #model.compile(optimizer = Adam(0.0001), loss = [weighted_squared_error_xyz, weighted_squared_error_wpqr])
     model.compile(optimizer = Adam(0.0001), loss = ['mean_absolute_error', quaternion_mean_multiplicative_error])
+    #model.compile(optimizer = Adam(0.0001), loss = ['mean_absolute_error', quaternion_log_phi_4_error])
     
     return model
 
