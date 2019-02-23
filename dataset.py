@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import quaternion
-import cv2
+#import cv2
 
 from keras.utils import Sequence
 
@@ -155,8 +155,8 @@ def load_dataset_3d(imu_data_filename, gt_data_filename, window_size=200, stride
     imu_data = pd.read_csv(imu_data_filename).values
     gt_data = pd.read_csv(gt_data_filename).values
 
-    #imu_data = imu_data[1200:-300]
-    #gt_data = gt_data[1200:-300]
+    imu_data = imu_data[1200:-300]
+    gt_data = gt_data[1200:-300]
     
     gyro_acc_data = np.concatenate([imu_data[:, 4:7], imu_data[:, 10:13]], axis=1)
     

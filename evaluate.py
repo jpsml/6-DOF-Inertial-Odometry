@@ -9,12 +9,13 @@ from util import *
 from model import *
 
 
-#model_filename = 'bidirectional_lstm_pred.hdf5'
-model_filename = 'bidirectional_lstm.hdf5'
+model_filename = 'bidirectional_lstm_pred.hdf5'
+#model_filename = 'bidirectional_lstm.hdf5'
+#model_filename = 'bidirectional_lstm_mtl_pred_6D_quat_mse_loss_batch_size_32_500_epochs.hdf5'
 
-#model = load_model(model_filename)
+model = load_model(model_filename)
 #model = load_model('bidirectional_lstm.hdf5', custom_objects={'quaternion_mean_multiplicative_error':quaternion_mean_multiplicative_error})
-model = load_model('bidirectional_lstm.hdf5', custom_objects={'quaternion_log_phi_4_error':quaternion_log_phi_4_error})
+#model = load_model('bidirectional_lstm.hdf5', custom_objects={'quaternion_log_phi_4_error':quaternion_log_phi_4_error})
 
 #scaler = joblib.load('scaler.save')
 
@@ -43,16 +44,22 @@ gt_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data5/syn/vi
 print('evaluating trajectory rmse (m) using model ' + model_filename)
 
 for (cur_imu_data_filename, cur_gt_data_filename) in zip(imu_data_filenames, gt_data_filenames):
-    x, [y_delta_p, y_delta_q], init_p, init_q = load_dataset_6d_quat(cur_imu_data_filename, cur_gt_data_filename, window_size, stride)
+    #x, [y_delta_p, y_delta_q], init_p, init_q = load_dataset_6d_quat(cur_imu_data_filename, cur_gt_data_filename, window_size, stride)
+    x, [y_delta_l, y_delta_theta, y_delta_psi], init_l, init_theta, init_psi = load_dataset_3d(cur_imu_data_filename, cur_gt_data_filename, window_size, stride)
 
     #x_2d = x.reshape(x.shape[0] * x.shape[1], x.shape[2])
     #x_2d = scaler.transform(x_2d)
     #x = x_2d.reshape(x.shape[0], x.shape[1], x.shape[2])
 
-    [yhat_delta_p, yhat_delta_q] = model.predict(x, batch_size=1, verbose=0)
+    #[yhat_delta_p, yhat_delta_q] = model.predict(x, batch_size=1, verbose=0)
+    #[yhat_delta_p, yhat_delta_q] = model.predict(x[0:200, :, :], batch_size=1, verbose=0)
+    [yhat_delta_l, yhat_delta_theta, yhat_delta_psi] = model.predict(x[0:200, :, :], batch_size=1, verbose=0)
 
-    gt_trajectory = generate_trajectory_6d_quat(init_p, init_q, y_delta_p, y_delta_q)
-    pred_trajectory = generate_trajectory_6d_quat(init_p, init_q, yhat_delta_p, yhat_delta_q)
+    #gt_trajectory = generate_trajectory_6d_quat(init_p, init_q, y_delta_p, y_delta_q)
+    #pred_trajectory = generate_trajectory_6d_quat(init_p, init_q, yhat_delta_p, yhat_delta_q)
+
+    gt_trajectory = generate_trajectory_3d(init_l, init_theta, init_psi, y_delta_l, y_delta_theta, y_delta_psi)
+    pred_trajectory = generate_trajectory_3d(init_l, init_theta, init_psi, yhat_delta_l, yhat_delta_theta, yhat_delta_psi)
 
 	#trajectory_rmse = np.sqrt(np.mean(np.square(pred_trajectory -
 	#gt_trajectory)))
