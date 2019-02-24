@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-#import cv2
 
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.animation import FuncAnimation
@@ -10,8 +9,6 @@ from keras.models import load_model
 from keras.optimizers import Adam
 
 from sklearn.utils import shuffle
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.externals import joblib
 
 from time import time
 
@@ -27,12 +24,12 @@ stride = 10
 
 x = []
 
-#y_delta_p = []
-#y_delta_q = []
+y_delta_p = []
+y_delta_q = []
 
-y_delta_l = []
-y_delta_theta = []
-y_delta_psi = []
+#y_delta_l = []
+#y_delta_theta = []
+#y_delta_psi = []
 
 imu_data_filenames = []
 gt_data_filenames = []
@@ -74,8 +71,8 @@ gt_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data3/syn/vi
 gt_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data1/syn/vi4.csv')
 
 for i, (cur_imu_data_filename, cur_gt_data_filename) in enumerate(zip(imu_data_filenames, gt_data_filenames)):
-    #cur_x, [cur_y_delta_p, cur_y_delta_q], init_p, init_q = load_dataset_6d_quat(cur_imu_data_filename, cur_gt_data_filename, window_size, stride)
-    cur_x, [cur_y_delta_l, cur_y_delta_theta, cur_y_delta_psi], init_l, init_theta, init_psi = load_dataset_3d(cur_imu_data_filename, cur_gt_data_filename, window_size, stride)
+    cur_x, [cur_y_delta_p, cur_y_delta_q], init_p, init_q = load_dataset_6d_quat(cur_imu_data_filename, cur_gt_data_filename, window_size, stride)
+    #cur_x, [cur_y_delta_l, cur_y_delta_theta, cur_y_delta_psi], init_l, init_theta, init_psi = load_dataset_3d(cur_imu_data_filename, cur_gt_data_filename, window_size, stride)
 
     #plt.plot(cur_y_delta_p[:, 0])
     #plt.plot(cur_y_delta_p[:, 1])
@@ -89,42 +86,35 @@ for i, (cur_imu_data_filename, cur_gt_data_filename) in enumerate(zip(imu_data_f
 
     x.append(cur_x)
 
-    #y_delta_p.append(cur_y_delta_p)
-    #y_delta_q.append(cur_y_delta_q)
+    y_delta_p.append(cur_y_delta_p)
+    y_delta_q.append(cur_y_delta_q)
 
-    y_delta_l.append(cur_y_delta_l)
-    y_delta_theta.append(cur_y_delta_theta)
-    y_delta_psi.append(cur_y_delta_psi)
+    #y_delta_l.append(cur_y_delta_l)
+    #y_delta_theta.append(cur_y_delta_theta)
+    #y_delta_psi.append(cur_y_delta_psi)
 
 
 x = np.vstack(x)
 
-#y_delta_p = np.vstack(y_delta_p)
-#y_delta_q = np.vstack(y_delta_q)
+y_delta_p = np.vstack(y_delta_p)
+y_delta_q = np.vstack(y_delta_q)
 
-y_delta_l = np.vstack(y_delta_l)
-y_delta_theta = np.vstack(y_delta_theta)
-y_delta_psi = np.vstack(y_delta_psi)
+#y_delta_l = np.vstack(y_delta_l)
+#y_delta_theta = np.vstack(y_delta_theta)
+#y_delta_psi = np.vstack(y_delta_psi)
 
-#scaler = MinMaxScaler(feature_range=(0, 1))
-#x_2d = x.reshape(x.shape[0] * x.shape[1], x.shape[2])
-#scaler = scaler.fit(x_2d)
-#x_2d = scaler.transform(x_2d)
-#x = x_2d.reshape(x.shape[0], x.shape[1], x.shape[2])
-#joblib.dump(scaler, 'scaler.save')
+x, y_delta_p, y_delta_q = shuffle(x, y_delta_p, y_delta_q)
+#x, y_delta_l, y_delta_theta, y_delta_psi = shuffle(x, y_delta_l, y_delta_theta, y_delta_psi)
 
-#x, y_delta_p, y_delta_q = shuffle(x, y_delta_p, y_delta_q)
-x, y_delta_l, y_delta_theta, y_delta_psi = shuffle(x, y_delta_l, y_delta_theta, y_delta_psi)
-
-do_training = False
+do_training = True
 
 if do_training:
     #model = create_model_6d_quat(window_size)
 
-    #pred_model = create_pred_model_6d_quat(window_size)
-    #train_model = create_train_model_6d_quat(pred_model, window_size)
-    pred_model = create_pred_model_3d(window_size)
-    train_model = create_train_model_3d(pred_model, window_size)
+    pred_model = create_pred_model_6d_quat(window_size)
+    train_model = create_train_model_6d_quat(pred_model, window_size)
+    #pred_model = create_pred_model_3d(window_size)
+    #train_model = create_train_model_3d(pred_model, window_size)
     train_model.compile(optimizer=Adam(0.0001), loss=None)
 
     #model_checkpoint = ModelCheckpoint('bidirectional_lstm.hdf5', monitor='val_loss', save_best_only=True, verbose=1)
@@ -132,8 +122,8 @@ if do_training:
     tensorboard = TensorBoard(log_dir="logs/{}".format(time()))
 
     #history = model.fit(x, [y_delta_p, y_delta_q], epochs=400, batch_size=512, verbose=1, callbacks=[model_checkpoint, tensorboard], validation_split=0.1)
-    #history = train_model.fit([x, y_delta_p, y_delta_q], epochs=1000, batch_size=512, verbose=1, callbacks=[model_checkpoint, tensorboard], validation_split=0.1)
-    history = train_model.fit([x, y_delta_l, y_delta_theta, y_delta_psi], epochs=500, batch_size=32, verbose=1, callbacks=[model_checkpoint, tensorboard], validation_split=0.1)
+    history = train_model.fit([x, y_delta_p, y_delta_q], epochs=500, batch_size=32, verbose=1, callbacks=[model_checkpoint, tensorboard], validation_split=0.1)
+    #history = train_model.fit([x, y_delta_l, y_delta_theta, y_delta_psi], epochs=500, batch_size=32, verbose=1, callbacks=[model_checkpoint, tensorboard], validation_split=0.1)
 
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
@@ -146,10 +136,10 @@ if do_training:
     train_model = load_model('bidirectional_lstm_log_var.hdf5', custom_objects={'CustomMultiLossLayer':CustomMultiLossLayer}, compile=False)
     print([K.get_value(log_var[0]) for log_var in train_model.layers[-1].log_vars])
 
-    #pred_model = create_pred_model_6d_quat(window_size)
-    #pred_model.set_weights(train_model.get_weights()[:-2])
-    pred_model = create_pred_model_3d(window_size)
-    pred_model.set_weights(train_model.get_weights()[:-3])
+    pred_model = create_pred_model_6d_quat(window_size)
+    pred_model.set_weights(train_model.get_weights()[:-2])
+    #pred_model = create_pred_model_3d(window_size)
+    #pred_model.set_weights(train_model.get_weights()[:-3])
     pred_model.save('bidirectional_lstm_pred.hdf5')
 
 model = load_model('bidirectional_lstm_pred.hdf5')
@@ -158,21 +148,17 @@ model = load_model('bidirectional_lstm_pred.hdf5')
 
 #scaler = joblib.load('scaler.save')
 
-#x, [y_delta_p, y_delta_q], init_p, init_q = load_dataset_6d_quat('Oxford Inertial Tracking Dataset/handheld/data4/syn/imu3.csv', 'Oxford Inertial Tracking Dataset/handheld/data4/syn/vi3.csv', window_size, stride)
-x, [y_delta_l, y_delta_theta, y_delta_psi], init_l, init_theta, init_psi = load_dataset_3d('Oxford Inertial Tracking Dataset/handheld/data4/syn/imu1.csv', 'Oxford Inertial Tracking Dataset/handheld/data4/syn/vi1.csv', window_size, stride)
+x, [y_delta_p, y_delta_q], init_p, init_q = load_dataset_6d_quat('Oxford Inertial Tracking Dataset/handheld/data4/syn/imu3.csv', 'Oxford Inertial Tracking Dataset/handheld/data4/syn/vi3.csv', window_size, stride)
+#x, [y_delta_l, y_delta_theta, y_delta_psi], init_l, init_theta, init_psi = load_dataset_3d('Oxford Inertial Tracking Dataset/handheld/data4/syn/imu3.csv', 'Oxford Inertial Tracking Dataset/handheld/data4/syn/vi3.csv', window_size, stride)
 
-#x_2d = x.reshape(x.shape[0] * x.shape[1], x.shape[2])
-#x_2d = scaler.transform(x_2d)
-#x = x_2d.reshape(x.shape[0], x.shape[1], x.shape[2])
+[yhat_delta_p, yhat_delta_q] = model.predict(x, batch_size=1, verbose=1)
+#[yhat_delta_l, yhat_delta_theta, yhat_delta_psi] = model.predict(x, batch_size=1, verbose=1)
 
-#[yhat_delta_p, yhat_delta_q] = model.predict(x, batch_size=1, verbose=1)
-[yhat_delta_l, yhat_delta_theta, yhat_delta_psi] = model.predict(x, batch_size=1, verbose=1)
+gt_trajectory = generate_trajectory_6d_quat(init_p, init_q, y_delta_p, y_delta_q)
+pred_trajectory = generate_trajectory_6d_quat(init_p, init_q, yhat_delta_p, yhat_delta_q)
 
-#gt_trajectory = generate_trajectory_6d_quat(init_p, init_q, y_delta_p, y_delta_q)
-#pred_trajectory = generate_trajectory_6d_quat(init_p, init_q, yhat_delta_p, yhat_delta_q)
-
-gt_trajectory = generate_trajectory_3d(init_l, init_theta, init_psi, y_delta_l, y_delta_theta, y_delta_psi)
-pred_trajectory = generate_trajectory_3d(init_l, init_theta, init_psi, yhat_delta_l, yhat_delta_theta, yhat_delta_psi)
+#gt_trajectory = generate_trajectory_3d(init_l, init_theta, init_psi, y_delta_l, y_delta_theta, y_delta_psi)
+#pred_trajectory = generate_trajectory_3d(init_l, init_theta, init_psi, yhat_delta_l, yhat_delta_theta, yhat_delta_psi)
 
 #fig = plt.figure()
 #ax = fig.gca(projection='3d')

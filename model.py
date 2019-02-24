@@ -34,8 +34,8 @@ def quaternion_mean_multiplicative_error(y_true, y_pred):
 
 # Custom loss layer
 class CustomMultiLossLayer(Layer):
-    #def __init__(self, nb_outputs=2, **kwargs):
-    def __init__(self, nb_outputs=3, **kwargs):
+    def __init__(self, nb_outputs=2, **kwargs):
+    #def __init__(self, nb_outputs=3, **kwargs):
         self.nb_outputs = nb_outputs
         self.is_placeholder = True
         super(CustomMultiLossLayer, self).__init__(**kwargs)
@@ -52,14 +52,14 @@ class CustomMultiLossLayer(Layer):
         assert len(ys_true) == self.nb_outputs and len(ys_pred) == self.nb_outputs
         loss = 0
 
-        for y_true, y_pred, log_var in zip(ys_true, ys_pred, self.log_vars):
-            precision = K.exp(-log_var[0])
-            loss += K.sum(precision * (y_true - y_pred)**2., -1) + log_var[0]
+        #for y_true, y_pred, log_var in zip(ys_true, ys_pred, self.log_vars):
+        #    precision = K.exp(-log_var[0])
+        #    loss += K.sum(precision * (y_true - y_pred)**2., -1) + log_var[0]
 
-        #precision = K.exp(-self.log_vars[0][0])
-        #loss += precision * mean_absolute_error(ys_true[0], ys_pred[0]) + self.log_vars[0][0]
-        #precision = K.exp(-self.log_vars[1][0])
-        #loss += precision * quaternion_mean_multiplicative_error(ys_true[1], ys_pred[1]) + self.log_vars[1][0]
+        precision = K.exp(-self.log_vars[0][0])
+        loss += precision * mean_absolute_error(ys_true[0], ys_pred[0]) + self.log_vars[0][0]
+        precision = K.exp(-self.log_vars[1][0])
+        loss += precision * quaternion_mean_multiplicative_error(ys_true[1], ys_pred[1]) + self.log_vars[1][0]
 
         return K.mean(loss)
 
@@ -152,9 +152,8 @@ def create_model_6d_quat(window_size=200):
     model = Model(inputs = input_gyro_acc, outputs = [output_delta_p, output_delta_q])
     model.summary()
     #model.compile(optimizer = Adam(0.0001), loss = 'mean_squared_error')
-    #model.compile(optimizer = Adam(0.0001), loss = [weighted_squared_error_xyz, weighted_squared_error_wpqr])
-    #model.compile(optimizer = Adam(0.0001), loss = ['mean_absolute_error', quaternion_mean_multiplicative_error])
-    model.compile(optimizer = Adam(0.0001), loss = ['mean_absolute_error', quaternion_log_phi_4_error])
+    model.compile(optimizer = Adam(0.0001), loss = ['mean_absolute_error', quaternion_mean_multiplicative_error])
+    #model.compile(optimizer = Adam(0.0001), loss = ['mean_absolute_error', quaternion_phi_4_error])
     
     return model
 

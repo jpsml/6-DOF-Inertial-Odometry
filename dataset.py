@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 import quaternion
-#import cv2
 
 from keras.utils import Sequence
 
