@@ -116,7 +116,7 @@ y_delta_psi = np.vstack(y_delta_psi)
 #x, y_delta_p, y_delta_q = shuffle(x, y_delta_p, y_delta_q)
 x, y_delta_l, y_delta_theta, y_delta_psi = shuffle(x, y_delta_l, y_delta_theta, y_delta_psi)
 
-do_training = True
+do_training = False
 
 if do_training:
     #model = create_model_6d_quat(window_size)
@@ -144,7 +144,6 @@ if do_training:
     plt.show()
 
     train_model = load_model('bidirectional_lstm_log_var.hdf5', custom_objects={'CustomMultiLossLayer':CustomMultiLossLayer}, compile=False)
-
     print([K.get_value(log_var[0]) for log_var in train_model.layers[-1].log_vars])
 
     #pred_model = create_pred_model_6d_quat(window_size)
