@@ -110,7 +110,7 @@ def load_dataset_6d_quat(imu_data_filename, gt_data_filename, window_size=200, s
     imu_data = imu_data[1200:-300]
     gt_data = gt_data[1200:-300]
     
-    gyro_acc_data = np.concatenate([imu_data[:, 4:7], imu_data[:, 10:13]], axis=1)
+    #gyro_acc_data = np.concatenate([imu_data[:, 4:7], imu_data[:, 10:13]], axis=1)
     
     pos_data = gt_data[:, 2:5]
     ori_data = np.concatenate([gt_data[:, 8:9], gt_data[:, 5:8]], axis=1)
@@ -118,12 +118,16 @@ def load_dataset_6d_quat(imu_data_filename, gt_data_filename, window_size=200, s
     init_p = pos_data[window_size//2 - stride//2, :]
     init_q = ori_data[window_size//2 - stride//2, :]
 
-    x = []
+    #x = []
+    x_gyro = []
+    x_acc = []
     y_delta_p = []
     y_delta_q = []
 
-    for idx in range(0, gyro_acc_data.shape[0] - window_size - 1, stride):
-        x.append(gyro_acc_data[idx + 1 : idx + 1 + window_size, :])
+    for idx in range(0, imu_data.shape[0] - window_size - 1, stride):
+        #x.append(gyro_acc_data[idx + 1 : idx + 1 + window_size, :])
+        x_gyro.append(imu_data[idx + 1 : idx + 1 + window_size, 4:7])
+        x_acc.append(imu_data[idx + 1 : idx + 1 + window_size, 10:13])
 
         p_a = pos_data[idx + window_size//2 - stride//2, :]
         p_b = pos_data[idx + window_size//2 + stride//2, :]
@@ -139,11 +143,14 @@ def load_dataset_6d_quat(imu_data_filename, gt_data_filename, window_size=200, s
         y_delta_q.append(quaternion.as_float_array(delta_q))
 
 
-    x = np.reshape(x, (len(x), x[0].shape[0], x[0].shape[1]))
+    #x = np.reshape(x, (len(x), x[0].shape[0], x[0].shape[1]))
+    x_gyro = np.reshape(x_gyro, (len(x_gyro), x_gyro[0].shape[0], x_gyro[0].shape[1]))
+    x_acc = np.reshape(x_acc, (len(x_acc), x_acc[0].shape[0], x_acc[0].shape[1]))
     y_delta_p = np.reshape(y_delta_p, (len(y_delta_p), y_delta_p[0].shape[0]))
     y_delta_q = np.reshape(y_delta_q, (len(y_delta_q), y_delta_q[0].shape[0]))
 
-    return x, [y_delta_p, y_delta_q], init_p, init_q
+    #return x, [y_delta_p, y_delta_q], init_p, init_q
+    return [x_gyro, x_acc], [y_delta_p, y_delta_q], init_p, init_q
 
 
 def load_dataset_3d(imu_data_filename, gt_data_filename, window_size=200, stride=10):

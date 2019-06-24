@@ -2,7 +2,7 @@ import tfquaternion as tfq
 import tensorflow as tf
 
 from keras.models import Sequential, Model
-from keras.layers import Bidirectional, LSTM, CuDNNLSTM, Dropout, Dense, Input, Layer
+from keras.layers import Bidirectional, LSTM, CuDNNLSTM, Dropout, Dense, Input, Layer, Conv1D, MaxPooling1D, concatenate
 from keras.initializers import Constant
 from keras.optimizers import Adam
 from keras.losses import mean_absolute_error
@@ -73,26 +73,41 @@ class CustomMultiLossLayer(Layer):
 
 
 def create_pred_model_6d_quat(window_size=200):
-    inp = Input((window_size, 6), name='inp')
-    lstm1 = Bidirectional(CuDNNLSTM(128, return_sequences=True))(inp)
+    #inp = Input((window_size, 6), name='inp')
+    #lstm1 = Bidirectional(CuDNNLSTM(128, return_sequences=True))(inp)
+    x1 = Input((window_size, 3), name='x1')
+    x2 = Input((window_size, 3), name='x2')
+    convA1 = Conv1D(128, 15)(x1)
+    convA2 = Conv1D(128, 15)(convA1)
+    poolA = MaxPooling1D(3)(convA2)
+    convB1 = Conv1D(128, 15)(x2)
+    convB2 = Conv1D(128, 15)(convB1)
+    poolB = MaxPooling1D(3)(convB2)
+    AB = concatenate([poolA, poolB])
+    lstm1 = Bidirectional(CuDNNLSTM(128, return_sequences=True))(AB)
     drop1 = Dropout(0.25)(lstm1)
     lstm2 = Bidirectional(CuDNNLSTM(128))(drop1)
     drop2 = Dropout(0.25)(lstm2)    
     y1_pred = Dense(3)(drop2)
     y2_pred = Dense(4)(drop2)
 
-    model = Model(inp, [y1_pred, y2_pred])
+    #model = Model(inp, [y1_pred, y2_pred])
+    model = Model([x1, x2], [y1_pred, y2_pred])
     
     return model
 
 
 def create_train_model_6d_quat(pred_model, window_size=200):
-    inp = Input(shape=(window_size, 6), name='inp')
-    y1_pred, y2_pred = pred_model(inp)
+    #inp = Input(shape=(window_size, 6), name='inp')
+    #y1_pred, y2_pred = pred_model(inp)
+    x1 = Input((window_size, 3), name='x1')
+    x2 = Input((window_size, 3), name='x2')
+    y1_pred, y2_pred = pred_model([x1, x2])
     y1_true = Input(shape=(3,), name='y1_true')
     y2_true = Input(shape=(4,), name='y2_true')
     out = CustomMultiLossLayer(nb_outputs=2)([y1_true, y2_true, y1_pred, y2_pred])
-    train_model = Model([inp, y1_true, y2_true], out)
+    #train_model = Model([inp, y1_true, y2_true], out)
+    train_model = Model([x1, x2, y1_true, y2_true], out)
     train_model.summary()
     return train_model
 

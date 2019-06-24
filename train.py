@@ -22,10 +22,12 @@ np.random.seed(0)
 window_size = 200
 stride = 10
 
-do_training = False
+do_training = True
 
 if do_training:
-    x = []
+    #x = []
+    x_gyro = []
+    x_acc = []
 
     y_delta_p = []
     y_delta_q = []
@@ -74,7 +76,8 @@ if do_training:
     gt_data_filenames.append('Oxford Inertial Tracking Dataset/handheld/data1/syn/vi4.csv')
 
     for i, (cur_imu_data_filename, cur_gt_data_filename) in enumerate(zip(imu_data_filenames, gt_data_filenames)):
-        cur_x, [cur_y_delta_p, cur_y_delta_q], init_p, init_q = load_dataset_6d_quat(cur_imu_data_filename, cur_gt_data_filename, window_size, stride)
+        #cur_x, [cur_y_delta_p, cur_y_delta_q], init_p, init_q = load_dataset_6d_quat(cur_imu_data_filename, cur_gt_data_filename, window_size, stride)
+        [cur_x_gyro, cur_x_acc], [cur_y_delta_p, cur_y_delta_q], init_p, init_q = load_dataset_6d_quat(cur_imu_data_filename, cur_gt_data_filename, window_size, stride)
         #cur_x, [cur_y_delta_l, cur_y_delta_theta, cur_y_delta_psi], init_l, init_theta, init_psi = load_dataset_3d(cur_imu_data_filename, cur_gt_data_filename, window_size, stride)
 
         #plt.plot(cur_y_delta_p[:, 0])
@@ -87,7 +90,9 @@ if do_training:
         #plt.legend(['delta_p_x', 'delta_p_y', 'delta_p_z', 'delta_q_w', 'delta_q_x', 'delta_q_y', 'delta_q_z'], loc='upper left')
         #plt.show()
 
-        x.append(cur_x)
+        #x.append(cur_x)
+        x_gyro.append(cur_x_gyro)
+        x_acc.append(cur_x_acc)
 
         y_delta_p.append(cur_y_delta_p)
         y_delta_q.append(cur_y_delta_q)
@@ -97,7 +102,9 @@ if do_training:
         #y_delta_psi.append(cur_y_delta_psi)
 
 
-    x = np.vstack(x)
+    #x = np.vstack(x)
+    x_gyro = np.vstack(x_gyro)
+    x_acc = np.vstack(x_acc)
 
     y_delta_p = np.vstack(y_delta_p)
     y_delta_q = np.vstack(y_delta_q)
@@ -106,7 +113,8 @@ if do_training:
     #y_delta_theta = np.vstack(y_delta_theta)
     #y_delta_psi = np.vstack(y_delta_psi)
 
-    x, y_delta_p, y_delta_q = shuffle(x, y_delta_p, y_delta_q)
+    #x, y_delta_p, y_delta_q = shuffle(x, y_delta_p, y_delta_q)
+    x_gyro, x_acc, y_delta_p, y_delta_q = shuffle(x_gyro, x_acc, y_delta_p, y_delta_q)
     #x, y_delta_l, y_delta_theta, y_delta_psi = shuffle(x, y_delta_l, y_delta_theta, y_delta_psi)
 
     #model = create_model_6d_quat(window_size)
@@ -122,7 +130,8 @@ if do_training:
     tensorboard = TensorBoard(log_dir="logs/{}".format(time()))
 
     #history = model.fit(x, [y_delta_p, y_delta_q], epochs=400, batch_size=512, verbose=1, callbacks=[model_checkpoint, tensorboard], validation_split=0.1)
-    history = train_model.fit([x, y_delta_p, y_delta_q], epochs=500, batch_size=32, verbose=1, callbacks=[model_checkpoint, tensorboard], validation_split=0.1)
+    #history = train_model.fit([x, y_delta_p, y_delta_q], epochs=500, batch_size=32, verbose=1, callbacks=[model_checkpoint, tensorboard], validation_split=0.1)
+    history = train_model.fit([x_gyro, x_acc, y_delta_p, y_delta_q], epochs=500, batch_size=32, verbose=1, callbacks=[model_checkpoint, tensorboard], validation_split=0.1)
     #history = train_model.fit([x, y_delta_l, y_delta_theta, y_delta_psi], epochs=500, batch_size=32, verbose=1, callbacks=[model_checkpoint, tensorboard], validation_split=0.1)
 
     plt.plot(history.history['loss'])
@@ -142,16 +151,18 @@ if do_training:
     #pred_model.set_weights(train_model.get_weights()[:-3])
     pred_model.save('bidirectional_lstm_pred.hdf5')
 
-#model = load_model('bidirectional_lstm_pred.hdf5')
+model = load_model('bidirectional_lstm_pred.hdf5')
 #model = load_model('bidirectional_lstm.hdf5', custom_objects={'quaternion_mean_multiplicative_error':quaternion_mean_multiplicative_error})
 #model = load_model('bidirectional_lstm.hdf5', custom_objects={'quaternion_log_phi_4_error':quaternion_phi_4_error})
-model = load_model('bidirectional_lstm_mtl_pred_6D_quat_mult_loss_batch_size_32_500_epochs.hdf5')
+#model = load_model('bidirectional_lstm_mtl_pred_6D_quat_mult_loss_batch_size_32_500_epochs.hdf5')
 
-x, [y_delta_p, y_delta_q], init_p, init_q = load_dataset_6d_quat('Oxford Inertial Tracking Dataset/handheld/data4/syn/imu1.csv', 'Oxford Inertial Tracking Dataset/handheld/data4/syn/vi1.csv', window_size, stride)
+#x, [y_delta_p, y_delta_q], init_p, init_q = load_dataset_6d_quat('Oxford Inertial Tracking Dataset/handheld/data4/syn/imu1.csv', 'Oxford Inertial Tracking Dataset/handheld/data4/syn/vi1.csv', window_size, stride)
+[x_gyro, x_acc], [y_delta_p, y_delta_q], init_p, init_q = load_dataset_6d_quat('Oxford Inertial Tracking Dataset/handheld/data4/syn/imu1.csv', 'Oxford Inertial Tracking Dataset/handheld/data4/syn/vi1.csv', window_size, stride)
 #x, [y_delta_l, y_delta_theta, y_delta_psi], init_l, init_theta, init_psi = load_dataset_3d('Oxford Inertial Tracking Dataset/handheld/data4/syn/imu3.csv', 'Oxford Inertial Tracking Dataset/handheld/data4/syn/vi3.csv', window_size, stride)
 
 #[yhat_delta_p, yhat_delta_q] = model.predict(x, batch_size=1, verbose=1)
-[yhat_delta_p, yhat_delta_q] = model.predict(x[0:1200, :, :], batch_size=1, verbose=1)
+#[yhat_delta_p, yhat_delta_q] = model.predict(x[0:200, :, :], batch_size=1, verbose=1)
+[yhat_delta_p, yhat_delta_q] = model.predict([x_gyro[0:200, :, :], x_acc[0:200, :, :]], batch_size=1, verbose=1)
 #[yhat_delta_l, yhat_delta_theta, yhat_delta_psi] = model.predict(x, batch_size=1, verbose=1)
 
 gt_trajectory = generate_trajectory_6d_quat(init_p, init_q, y_delta_p, y_delta_q)
@@ -264,14 +275,14 @@ for num in range(1, pred_trajectory.shape[0]):
     #plt.show()
 
 #trajectory_rmse = np.sqrt(np.mean(np.square(pred_trajectory - gt_trajectory)))
-trajectory_rmse = np.sqrt(np.mean(np.square(pred_trajectory[0:1200, :] - gt_trajectory[0:1200, :])))
+trajectory_rmse = np.sqrt(np.mean(np.square(pred_trajectory[0:200, :] - gt_trajectory[0:200, :])))
 print('trajectory rmse (m): ', trajectory_rmse)
 
-x_rmse = np.sqrt(np.mean(np.square(pred_trajectory[0:1200, 0] - gt_trajectory[0:1200, 0])))
+x_rmse = np.sqrt(np.mean(np.square(pred_trajectory[0:200, 0] - gt_trajectory[0:200, 0])))
 print('x rmse (m): ', x_rmse)
 
-y_rmse = np.sqrt(np.mean(np.square(pred_trajectory[0:1200, 1] - gt_trajectory[0:1200, 1])))
+y_rmse = np.sqrt(np.mean(np.square(pred_trajectory[0:200, 1] - gt_trajectory[0:200, 1])))
 print('y rmse (m): ', y_rmse)
 
-z_rmse = np.sqrt(np.mean(np.square(pred_trajectory[0:1200, 2] - gt_trajectory[0:1200, 2])))
+z_rmse = np.sqrt(np.mean(np.square(pred_trajectory[0:200, 2] - gt_trajectory[0:200, 2])))
 print('z rmse (m): ', z_rmse)
