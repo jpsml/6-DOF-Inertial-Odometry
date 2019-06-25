@@ -1,8 +1,44 @@
 import numpy as np
 import pandas as pd
 import quaternion
+import scipy.interpolate
 
 from keras.utils import Sequence
+
+
+def interpolate_3dvector_linear(input, input_timestamp, output_timestamp):
+    assert input.shape[0] == input_timestamp.shape[0]
+    func = scipy.interpolate.interp1d(input_timestamp, input, axis=0)
+    interpolated = func(output_timestamp)
+    return interpolated
+
+
+def load_euroc_mav_dataset(imu_data_filename, gt_data_filename):
+    gt_data = pd.read_csv(gt_data_filename).values    
+    imu_data = pd.read_csv(imu_data_filename).values
+
+    gyro_data = interpolate_3dvector_linear(imu_data[:, 1:4], imu_data[:, 0], gt_data[:, 0])
+    acc_data = interpolate_3dvector_linear(imu_data[:, 4:7], imu_data[:, 0], gt_data[:, 0])
+    pos_data = gt_data[:, 1:4]
+    ori_data = gt_data[:, 4:8]
+
+    return gyro_data, acc_data, pos_data, ori_data
+
+
+def load_oxiod_dataset(imu_data_filename, gt_data_filename):
+    imu_data = pd.read_csv(imu_data_filename).values
+    gt_data = pd.read_csv(gt_data_filename).values
+
+    imu_data = imu_data[1200:-300]
+    gt_data = gt_data[1200:-300]
+
+    gyro_data = imu_data[:, 4:7]
+    acc_data = imu_data[:, 10:13]
+    
+    pos_data = gt_data[:, 2:5]
+    ori_data = np.concatenate([gt_data[:, 8:9], gt_data[:, 5:8]], axis=1)
+
+    return gyro_data, acc_data, pos_data, ori_data
 
 
 def force_quaternion_uniqueness(q):
@@ -99,21 +135,8 @@ def load_dataset_6d_rvec(imu_data_filename, gt_data_filename, window_size=200, s
     return x, [y_delta_rvec, y_delta_tvec], init_rvec, init_tvec
 
 
-def load_dataset_6d_quat(imu_data_filename, gt_data_filename, window_size=200, stride=10):
-
-    #imu_data = np.genfromtxt(imu_data_filename, delimiter=',')
-    #gt_data = np.genfromtxt(gt_data_filename, delimiter=',')
-    
-    imu_data = pd.read_csv(imu_data_filename).values
-    gt_data = pd.read_csv(gt_data_filename).values
-
-    imu_data = imu_data[1200:-300]
-    gt_data = gt_data[1200:-300]
-    
-    #gyro_acc_data = np.concatenate([imu_data[:, 4:7], imu_data[:, 10:13]], axis=1)
-    
-    pos_data = gt_data[:, 2:5]
-    ori_data = np.concatenate([gt_data[:, 8:9], gt_data[:, 5:8]], axis=1)
+def load_dataset_6d_quat(gyro_data, acc_data, pos_data, ori_data, window_size=200, stride=10):    
+    #gyro_acc_data = np.concatenate([gyro_data, acc_data], axis=1)
 
     init_p = pos_data[window_size//2 - stride//2, :]
     init_q = ori_data[window_size//2 - stride//2, :]
@@ -124,10 +147,10 @@ def load_dataset_6d_quat(imu_data_filename, gt_data_filename, window_size=200, s
     y_delta_p = []
     y_delta_q = []
 
-    for idx in range(0, imu_data.shape[0] - window_size - 1, stride):
+    for idx in range(0, gyro_data.shape[0] - window_size - 1, stride):
         #x.append(gyro_acc_data[idx + 1 : idx + 1 + window_size, :])
-        x_gyro.append(imu_data[idx + 1 : idx + 1 + window_size, 4:7])
-        x_acc.append(imu_data[idx + 1 : idx + 1 + window_size, 10:13])
+        x_gyro.append(gyro_data[idx + 1 : idx + 1 + window_size, :])
+        x_acc.append(acc_data[idx + 1 : idx + 1 + window_size, :])
 
         p_a = pos_data[idx + window_size//2 - stride//2, :]
         p_b = pos_data[idx + window_size//2 + stride//2, :]
