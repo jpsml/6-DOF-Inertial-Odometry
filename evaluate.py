@@ -9,10 +9,9 @@ from util import *
 from model import *
 
 
-#model_filename = 'bidirectional_lstm_pred.hdf5'
-model_filename = 'bidirectional_lstm_pred_euroc.hdf5'
-#model_filename = 'bidirectional_lstm.hdf5'
-#model_filename = 'bidirectional_lstm_mtl_pred_6D_quat_mult_loss_batch_size_32_500_epochs.hdf5'
+model_filename = 'bidirectional_lstm_pred.hdf5'
+#model_filename = 'bidirectional_lstm_mtl_pred_6D_quat_mult_loss_conv_layers_batch_size_32_500_epochs_window_size_200_stride_10.hdf5'
+#model_filename = 'bidirectional_lstm_pred_euroc.hdf5'
 
 model = load_model(model_filename)
 #model = load_model('bidirectional_lstm.hdf5', custom_objects={'quaternion_mean_multiplicative_error':quaternion_mean_multiplicative_error})
@@ -89,14 +88,14 @@ for (cur_imu_data_filename, cur_gt_data_filename) in zip(imu_data_filenames, gt_
     #    trajectory_length += np.sqrt(np.sum(np.square(gt_trajectory[i, :] - gt_trajectory[i - 1, :]), axis=-1))
     #print(trajectory_length)
 
-all_y_delta_p = np.vstack(all_y_delta_p)
-all_yhat_delta_p = np.vstack(all_yhat_delta_p)
+#all_y_delta_p = np.vstack(all_y_delta_p)
+#all_yhat_delta_p = np.vstack(all_yhat_delta_p)
 
-y_delta_p_norm = np.linalg.norm(all_y_delta_p, axis=-1)
-yhat_delta_p_norm = np.linalg.norm(all_yhat_delta_p, axis=-1)
+#y_delta_p_norm = np.linalg.norm(all_y_delta_p, axis=-1)
+#yhat_delta_p_norm = np.linalg.norm(all_yhat_delta_p, axis=-1)
 
-trans_mae = np.mean(np.absolute(y_delta_p_norm - yhat_delta_p_norm))
-trans_rmse = np.sqrt(np.mean(np.square(y_delta_p_norm - yhat_delta_p_norm)))
+#trans_mae = np.mean(np.absolute(y_delta_p_norm - yhat_delta_p_norm))
+#trans_rmse = np.sqrt(np.mean(np.square(y_delta_p_norm - yhat_delta_p_norm)))
 
-print('trans_mae: ', trans_mae)
-print('trans_rmse: ', trans_rmse)
+#print('trans_mae: ', trans_mae)
+#print('trans_rmse: ', trans_rmse)

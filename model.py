@@ -60,6 +60,7 @@ class CustomMultiLossLayer(Layer):
         loss += precision * mean_absolute_error(ys_true[0], ys_pred[0]) + self.log_vars[0][0]
         precision = K.exp(-self.log_vars[1][0])
         loss += precision * quaternion_mean_multiplicative_error(ys_true[1], ys_pred[1]) + self.log_vars[1][0]
+        #loss += precision * quaternion_phi_4_error(ys_true[1], ys_pred[1]) + self.log_vars[1][0]
 
         return K.mean(loss)
 
@@ -93,6 +94,8 @@ def create_pred_model_6d_quat(window_size=200):
 
     #model = Model(inp, [y1_pred, y2_pred])
     model = Model([x1, x2], [y1_pred, y2_pred])
+
+    model.summary()
     
     return model
 
