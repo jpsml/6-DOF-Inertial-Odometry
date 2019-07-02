@@ -135,7 +135,7 @@ def load_dataset_6d_rvec(imu_data_filename, gt_data_filename, window_size=200, s
     return x, [y_delta_rvec, y_delta_tvec], init_rvec, init_tvec
 
 
-def load_dataset_6d_quat(gyro_data, acc_data, pos_data, ori_data, window_size=200, stride=10):    
+def load_dataset_6d_quat(gyro_data, acc_data, pos_data, ori_data, window_size=200, stride=10):
     #gyro_acc_data = np.concatenate([gyro_data, acc_data], axis=1)
 
     init_p = pos_data[window_size//2 - stride//2, :]
@@ -176,33 +176,25 @@ def load_dataset_6d_quat(gyro_data, acc_data, pos_data, ori_data, window_size=20
     return [x_gyro, x_acc], [y_delta_p, y_delta_q], init_p, init_q
 
 
-def load_dataset_3d(imu_data_filename, gt_data_filename, window_size=200, stride=10):
-
-    #imu_data = np.genfromtxt(imu_data_filename, delimiter=',')
-    #gt_data = np.genfromtxt(gt_data_filename, delimiter=',')
-    
-    imu_data = pd.read_csv(imu_data_filename).values
-    gt_data = pd.read_csv(gt_data_filename).values
-
-    imu_data = imu_data[1200:-300]
-    gt_data = gt_data[1200:-300]
-    
-    gyro_acc_data = np.concatenate([imu_data[:, 4:7], imu_data[:, 10:13]], axis=1)
-    
-    loc_data = gt_data[:, 2:5]
+def load_dataset_3d(gyro_data, acc_data, loc_data, window_size=200, stride=10):
+    #gyro_acc_data = np.concatenate([gyro_data, acc_data], axis=1)
 
     l0 = loc_data[window_size//2 - stride//2 - stride, :]
     l1 = loc_data[window_size//2 - stride//2, :]
     init_l = l1
     delta_l, init_theta, init_psi = cartesian_to_spherical_coordinates(l1 - l0)
 
-    x = []
+    #x = []
+    x_gyro = []
+    x_acc = []
     y_delta_l = []
     y_delta_theta = []
     y_delta_psi = []
 
-    for idx in range(0, gyro_acc_data.shape[0] - window_size - 1, stride):
-        x.append(gyro_acc_data[idx + 1 : idx + 1 + window_size, :])
+    for idx in range(0, gyro_data.shape[0] - window_size - 1, stride):
+        #x.append(gyro_acc_data[idx + 1 : idx + 1 + window_size, :])
+        x_gyro.append(gyro_data[idx + 1 : idx + 1 + window_size, :])
+        x_acc.append(acc_data[idx + 1 : idx + 1 + window_size, :])
 
         delta_l0, theta0, psi0 = cartesian_to_spherical_coordinates(loc_data[idx + window_size//2 - stride//2, :] - loc_data[idx + window_size//2 - stride//2 - stride, :])
 
@@ -229,12 +221,15 @@ def load_dataset_3d(imu_data_filename, gt_data_filename, window_size=200, stride
         y_delta_psi.append(np.array([delta_psi]))
 
 
-    x = np.reshape(x, (len(x), x[0].shape[0], x[0].shape[1]))
+    #x = np.reshape(x, (len(x), x[0].shape[0], x[0].shape[1]))
+    x_gyro = np.reshape(x_gyro, (len(x_gyro), x_gyro[0].shape[0], x_gyro[0].shape[1]))
+    x_acc = np.reshape(x_acc, (len(x_acc), x_acc[0].shape[0], x_acc[0].shape[1]))
     y_delta_l = np.reshape(y_delta_l, (len(y_delta_l), y_delta_l[0].shape[0]))
     y_delta_theta = np.reshape(y_delta_theta, (len(y_delta_theta), y_delta_theta[0].shape[0]))
     y_delta_psi = np.reshape(y_delta_psi, (len(y_delta_psi), y_delta_psi[0].shape[0]))
 
-    return x, [y_delta_l, y_delta_theta, y_delta_psi], init_l, init_theta, init_psi
+    #return x, [y_delta_l, y_delta_theta, y_delta_psi], init_l, init_theta, init_psi
+    return [x_gyro, x_acc], [y_delta_l, y_delta_theta, y_delta_psi], init_l, init_theta, init_psi
 
 
 def load_dataset_2d(imu_data_filename, gt_data_filename, window_size=200, stride=10):

@@ -34,8 +34,8 @@ def quaternion_mean_multiplicative_error(y_true, y_pred):
 
 # Custom loss layer
 class CustomMultiLossLayer(Layer):
-    def __init__(self, nb_outputs=2, **kwargs):
-    #def __init__(self, nb_outputs=3, **kwargs):
+    #def __init__(self, nb_outputs=2, **kwargs):
+    def __init__(self, nb_outputs=3, **kwargs):
         self.nb_outputs = nb_outputs
         self.is_placeholder = True
         super(CustomMultiLossLayer, self).__init__(**kwargs)
@@ -52,15 +52,15 @@ class CustomMultiLossLayer(Layer):
         assert len(ys_true) == self.nb_outputs and len(ys_pred) == self.nb_outputs
         loss = 0
 
-        #for y_true, y_pred, log_var in zip(ys_true, ys_pred, self.log_vars):
-        #    precision = K.exp(-log_var[0])
-        #    loss += K.sum(precision * (y_true - y_pred)**2., -1) + log_var[0]
+        for y_true, y_pred, log_var in zip(ys_true, ys_pred, self.log_vars):
+            precision = K.exp(-log_var[0])
+            loss += K.sum(precision * (y_true - y_pred)**2., -1) + log_var[0]
 
-        precision = K.exp(-self.log_vars[0][0])
-        loss += precision * mean_absolute_error(ys_true[0], ys_pred[0]) + self.log_vars[0][0]
-        precision = K.exp(-self.log_vars[1][0])
-        loss += precision * quaternion_mean_multiplicative_error(ys_true[1], ys_pred[1]) + self.log_vars[1][0]
-        #loss += precision * quaternion_phi_4_error(ys_true[1], ys_pred[1]) + self.log_vars[1][0]
+        #precision = K.exp(-self.log_vars[0][0])
+        #loss += precision * mean_absolute_error(ys_true[0], ys_pred[0]) + self.log_vars[0][0]
+        #precision = K.exp(-self.log_vars[1][0])
+        #loss += precision * quaternion_mean_multiplicative_error(ys_true[1], ys_pred[1]) + self.log_vars[1][0]
+        ##loss += precision * quaternion_phi_4_error(ys_true[1], ys_pred[1]) + self.log_vars[1][0]
 
         return K.mean(loss)
 
@@ -78,11 +78,11 @@ def create_pred_model_6d_quat(window_size=200):
     #lstm1 = Bidirectional(CuDNNLSTM(128, return_sequences=True))(inp)
     x1 = Input((window_size, 3), name='x1')
     x2 = Input((window_size, 3), name='x2')
-    convA1 = Conv1D(128, 15)(x1)
-    convA2 = Conv1D(128, 15)(convA1)
+    convA1 = Conv1D(128, 11)(x1)
+    convA2 = Conv1D(128, 11)(convA1)
     poolA = MaxPooling1D(3)(convA2)
-    convB1 = Conv1D(128, 15)(x2)
-    convB2 = Conv1D(128, 15)(convB1)
+    convB1 = Conv1D(128, 11)(x2)
+    convB2 = Conv1D(128, 11)(convB1)
     poolB = MaxPooling1D(3)(convB2)
     AB = concatenate([poolA, poolB])
     lstm1 = Bidirectional(CuDNNLSTM(128, return_sequences=True))(AB)
@@ -116,28 +116,45 @@ def create_train_model_6d_quat(pred_model, window_size=200):
 
 
 def create_pred_model_3d(window_size=200):
-    inp = Input((window_size, 6), name='inp')
-    lstm1 = Bidirectional(CuDNNLSTM(128, return_sequences=True))(inp)
+    #inp = Input((window_size, 6), name='inp')
+    #lstm1 = Bidirectional(CuDNNLSTM(128, return_sequences=True))(inp)
+    x1 = Input((window_size, 3), name='x1')
+    x2 = Input((window_size, 3), name='x2')
+    convA1 = Conv1D(128, 11)(x1)
+    convA2 = Conv1D(128, 11)(convA1)
+    poolA = MaxPooling1D(3)(convA2)
+    convB1 = Conv1D(128, 11)(x2)
+    convB2 = Conv1D(128, 11)(convB1)
+    poolB = MaxPooling1D(3)(convB2)
+    AB = concatenate([poolA, poolB])
+    lstm1 = Bidirectional(CuDNNLSTM(128, return_sequences=True))(AB)
     drop1 = Dropout(0.25)(lstm1)
     lstm2 = Bidirectional(CuDNNLSTM(128))(drop1)
-    drop2 = Dropout(0.25)(lstm2)    
+    drop2 = Dropout(0.25)(lstm2)
     y1_pred = Dense(1)(drop2)
     y2_pred = Dense(1)(drop2)
     y3_pred = Dense(1)(drop2)
 
-    model = Model(inp, [y1_pred, y2_pred, y3_pred])
+    #model = Model(inp, [y1_pred, y2_pred, y3_pred])
+    model = Model([x1, x2], [y1_pred, y2_pred, y3_pred])
+
+    model.summary()
     
     return model
 
 
 def create_train_model_3d(pred_model, window_size=200):
-    inp = Input(shape=(window_size, 6), name='inp')
-    y1_pred, y2_pred, y3_pred = pred_model(inp)
+    #inp = Input(shape=(window_size, 6), name='inp')
+    #y1_pred, y2_pred, y3_pred = pred_model(inp)
+    x1 = Input((window_size, 3), name='x1')
+    x2 = Input((window_size, 3), name='x2')
+    y1_pred, y2_pred, y3_pred = pred_model([x1, x2])
     y1_true = Input(shape=(1,), name='y1_true')
     y2_true = Input(shape=(1,), name='y2_true')
     y3_true = Input(shape=(1,), name='y3_true')
     out = CustomMultiLossLayer(nb_outputs=3)([y1_true, y2_true, y3_true, y1_pred, y2_pred, y3_pred])
-    train_model = Model([inp, y1_true, y2_true, y3_true], out)
+    #train_model = Model([inp, y1_true, y2_true, y3_true], out)
+    train_model = Model([x1, x2, y1_true, y2_true, y3_true], out)
     train_model.summary()
     return train_model
 
