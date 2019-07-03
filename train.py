@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
 
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.animation import FuncAnimation
@@ -22,19 +23,19 @@ np.random.seed(0)
 window_size = 200
 stride = 10
 
-do_training = True
+do_training = False
 
 if do_training:
     #x = []
     x_gyro = []
     x_acc = []
 
-    #y_delta_p = []
-    #y_delta_q = []
+    y_delta_p = []
+    y_delta_q = []
 
-    y_delta_l = []
-    y_delta_theta = []
-    y_delta_psi = []
+    #y_delta_l = []
+    #y_delta_theta = []
+    #y_delta_psi = []
 
     imu_data_filenames = []
     gt_data_filenames = []
@@ -93,9 +94,9 @@ if do_training:
         cur_gyro_data, cur_acc_data, cur_pos_data, cur_ori_data = load_oxiod_dataset(cur_imu_data_filename, cur_gt_data_filename)
         #cur_gyro_data, cur_acc_data, cur_pos_data, cur_ori_data = load_euroc_mav_dataset(cur_imu_data_filename, cur_gt_data_filename)
         #cur_x, [cur_y_delta_p, cur_y_delta_q], init_p, init_q = load_dataset_6d_quat(cur_gyro_data, cur_acc_data, cur_pos_data, cur_ori_data, window_size, stride)
-        #[cur_x_gyro, cur_x_acc], [cur_y_delta_p, cur_y_delta_q], init_p, init_q = load_dataset_6d_quat(cur_gyro_data, cur_acc_data, cur_pos_data, cur_ori_data, window_size, stride)
+        [cur_x_gyro, cur_x_acc], [cur_y_delta_p, cur_y_delta_q], init_p, init_q = load_dataset_6d_quat(cur_gyro_data, cur_acc_data, cur_pos_data, cur_ori_data, window_size, stride)
         #cur_x, [cur_y_delta_l, cur_y_delta_theta, cur_y_delta_psi], init_l, init_theta, init_psi = load_dataset_3d(cur_gyro_data, cur_acc_data, cur_pos_data, window_size, stride)
-        [cur_x_gyro, cur_x_acc], [cur_y_delta_l, cur_y_delta_theta, cur_y_delta_psi], init_l, init_theta, init_psi = load_dataset_3d(cur_gyro_data, cur_acc_data, cur_pos_data, window_size, stride)
+        #[cur_x_gyro, cur_x_acc], [cur_y_delta_l, cur_y_delta_theta, cur_y_delta_psi], init_l, init_theta, init_psi = load_dataset_3d(cur_gyro_data, cur_acc_data, cur_pos_data, window_size, stride)
 
         #plt.plot(cur_y_delta_p[:, 0])
         #plt.plot(cur_y_delta_p[:, 1])
@@ -111,36 +112,36 @@ if do_training:
         x_gyro.append(cur_x_gyro)
         x_acc.append(cur_x_acc)
 
-        #y_delta_p.append(cur_y_delta_p)
-        #y_delta_q.append(cur_y_delta_q)
+        y_delta_p.append(cur_y_delta_p)
+        y_delta_q.append(cur_y_delta_q)
 
-        y_delta_l.append(cur_y_delta_l)
-        y_delta_theta.append(cur_y_delta_theta)
-        y_delta_psi.append(cur_y_delta_psi)
+        #y_delta_l.append(cur_y_delta_l)
+        #y_delta_theta.append(cur_y_delta_theta)
+        #y_delta_psi.append(cur_y_delta_psi)
 
 
     #x = np.vstack(x)
     x_gyro = np.vstack(x_gyro)
     x_acc = np.vstack(x_acc)
 
-    #y_delta_p = np.vstack(y_delta_p)
-    #y_delta_q = np.vstack(y_delta_q)
+    y_delta_p = np.vstack(y_delta_p)
+    y_delta_q = np.vstack(y_delta_q)
 
-    y_delta_l = np.vstack(y_delta_l)
-    y_delta_theta = np.vstack(y_delta_theta)
-    y_delta_psi = np.vstack(y_delta_psi)
+    #y_delta_l = np.vstack(y_delta_l)
+    #y_delta_theta = np.vstack(y_delta_theta)
+    #y_delta_psi = np.vstack(y_delta_psi)
 
     #x, y_delta_p, y_delta_q = shuffle(x, y_delta_p, y_delta_q)
-    #x_gyro, x_acc, y_delta_p, y_delta_q = shuffle(x_gyro, x_acc, y_delta_p, y_delta_q)
+    x_gyro, x_acc, y_delta_p, y_delta_q = shuffle(x_gyro, x_acc, y_delta_p, y_delta_q)
     #x, y_delta_l, y_delta_theta, y_delta_psi = shuffle(x, y_delta_l, y_delta_theta, y_delta_psi)
-    x_gyro, x_acc, y_delta_l, y_delta_theta, y_delta_psi = shuffle(x_gyro, x_acc, y_delta_l, y_delta_theta, y_delta_psi)
+    #x_gyro, x_acc, y_delta_l, y_delta_theta, y_delta_psi = shuffle(x_gyro, x_acc, y_delta_l, y_delta_theta, y_delta_psi)
 
     #model = create_model_6d_quat(window_size)
 
-    #pred_model = create_pred_model_6d_quat(window_size)
-    #train_model = create_train_model_6d_quat(pred_model, window_size)
-    pred_model = create_pred_model_3d(window_size)
-    train_model = create_train_model_3d(pred_model, window_size)
+    pred_model = create_pred_model_6d_quat(window_size)
+    train_model = create_train_model_6d_quat(pred_model, window_size)
+    #pred_model = create_pred_model_3d(window_size)
+    #train_model = create_train_model_3d(pred_model, window_size)
     train_model.compile(optimizer=Adam(0.0001), loss=None)
 
     #model_checkpoint = ModelCheckpoint('bidirectional_lstm.hdf5', monitor='val_loss', save_best_only=True, verbose=1)
@@ -149,9 +150,9 @@ if do_training:
 
     #history = model.fit(x, [y_delta_p, y_delta_q], epochs=400, batch_size=512, verbose=1, callbacks=[model_checkpoint, tensorboard], validation_split=0.1)
     #history = train_model.fit([x, y_delta_p, y_delta_q], epochs=500, batch_size=32, verbose=1, callbacks=[model_checkpoint, tensorboard], validation_split=0.1)
-    #history = train_model.fit([x_gyro, x_acc, y_delta_p, y_delta_q], epochs=500, batch_size=32, verbose=1, callbacks=[model_checkpoint, tensorboard], validation_split=0.1)
+    history = train_model.fit([x_gyro, x_acc, y_delta_p, y_delta_q], epochs=500, batch_size=32, verbose=1, callbacks=[model_checkpoint, tensorboard], validation_split=0.1)
     #history = train_model.fit([x, y_delta_l, y_delta_theta, y_delta_psi], epochs=500, batch_size=32, verbose=1, callbacks=[model_checkpoint, tensorboard], validation_split=0.1)
-    history = train_model.fit([x_gyro, x_acc, y_delta_l, y_delta_theta, y_delta_psi], epochs=500, batch_size=32, verbose=1, callbacks=[model_checkpoint, tensorboard], validation_split=0.1)
+    #history = train_model.fit([x_gyro, x_acc, y_delta_l, y_delta_theta, y_delta_psi], epochs=500, batch_size=32, verbose=1, callbacks=[model_checkpoint, tensorboard], validation_split=0.1)
 
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
@@ -164,37 +165,37 @@ if do_training:
     train_model = load_model('bidirectional_lstm_log_var.hdf5', custom_objects={'CustomMultiLossLayer':CustomMultiLossLayer}, compile=False)
     print([K.get_value(log_var[0]) for log_var in train_model.layers[-1].log_vars])
 
-    #pred_model = create_pred_model_6d_quat(window_size)
-    #pred_model.set_weights(train_model.get_weights()[:-2])
-    pred_model = create_pred_model_3d(window_size)
-    pred_model.set_weights(train_model.get_weights()[:-3])
+    pred_model = create_pred_model_6d_quat(window_size)
+    pred_model.set_weights(train_model.get_weights()[:-2])
+    #pred_model = create_pred_model_3d(window_size)
+    #pred_model.set_weights(train_model.get_weights()[:-3])
     pred_model.save('bidirectional_lstm_pred.hdf5')
 
-model = load_model('bidirectional_lstm_pred.hdf5')
+#model = load_model('bidirectional_lstm_pred.hdf5')
 #model = load_model('bidirectional_lstm_pred_euroc.hdf5')
 #model = load_model('bidirectional_lstm.hdf5', custom_objects={'quaternion_mean_multiplicative_error':quaternion_mean_multiplicative_error})
 #model = load_model('bidirectional_lstm.hdf5', custom_objects={'quaternion_log_phi_4_error':quaternion_phi_4_error})
-#model = load_model('bidirectional_lstm_mtl_pred_6D_quat_mult_loss_batch_size_32_500_epochs.hdf5')
+model = load_model('bidirectional_lstm_mtl_pred_6D_quat_mult_loss_conv_layers_batch_size_32_500_epochs_window_size_200_stride_10.hdf5')
 
-gyro_data, acc_data, pos_data, ori_data = load_oxiod_dataset('Oxford Inertial Tracking Dataset/handheld/data4/syn/imu1.csv', 'Oxford Inertial Tracking Dataset/handheld/data4/syn/vi1.csv')
+gyro_data, acc_data, pos_data, ori_data = load_oxiod_dataset('Oxford Inertial Tracking Dataset/handheld/data4/syn/imu3.csv', 'Oxford Inertial Tracking Dataset/handheld/data4/syn/vi3.csv')
 #gyro_data, acc_data, pos_data, ori_data = load_euroc_mav_dataset('V1_01_easy/mav0/imu0/data.csv', 'V1_01_easy/mav0/state_groundtruth_estimate0/data.csv')
 #x, [y_delta_p, y_delta_q], init_p, init_q = load_dataset_6d_quat(gyro_data, acc_data, pos_data, ori_data, window_size, stride)
-#[x_gyro, x_acc], [y_delta_p, y_delta_q], init_p, init_q = load_dataset_6d_quat(gyro_data, acc_data, pos_data, ori_data, window_size, stride)
+[x_gyro, x_acc], [y_delta_p, y_delta_q], init_p, init_q = load_dataset_6d_quat(gyro_data, acc_data, pos_data, ori_data, window_size, stride)
 #x, [y_delta_l, y_delta_theta, y_delta_psi], init_l, init_theta, init_psi = load_dataset_3d(gyro_data, acc_data, pos_data, window_size, stride)
-[x_gyro, x_acc], [y_delta_l, y_delta_theta, y_delta_psi], init_l, init_theta, init_psi = load_dataset_3d(gyro_data, acc_data, pos_data, window_size, stride)
+#[x_gyro, x_acc], [y_delta_l, y_delta_theta, y_delta_psi], init_l, init_theta, init_psi = load_dataset_3d(gyro_data, acc_data, pos_data, window_size, stride)
 
 #[yhat_delta_p, yhat_delta_q] = model.predict(x, batch_size=1, verbose=1)
 #[yhat_delta_p, yhat_delta_q] = model.predict(x[0:200, :, :], batch_size=1, verbose=1)
 #[yhat_delta_p, yhat_delta_q] = model.predict([x_gyro, x_acc], batch_size=1, verbose=1)
-#[yhat_delta_p, yhat_delta_q] = model.predict([x_gyro[0:200, :, :], x_acc[0:200, :, :]], batch_size=1, verbose=1)
+[yhat_delta_p, yhat_delta_q] = model.predict([x_gyro[0:200, :, :], x_acc[0:200, :, :]], batch_size=1, verbose=1)
 #[yhat_delta_l, yhat_delta_theta, yhat_delta_psi] = model.predict(x[0:200, :, :], batch_size=1, verbose=1)
-[yhat_delta_l, yhat_delta_theta, yhat_delta_psi] = model.predict([x_gyro[0:200, :, :], x_acc[0:200, :, :]], batch_size=1, verbose=1)
+#[yhat_delta_l, yhat_delta_theta, yhat_delta_psi] = model.predict([x_gyro[0:200, :, :], x_acc[0:200, :, :]], batch_size=1, verbose=1)
 
-#gt_trajectory = generate_trajectory_6d_quat(init_p, init_q, y_delta_p, y_delta_q)
-#pred_trajectory = generate_trajectory_6d_quat(init_p, init_q, yhat_delta_p, yhat_delta_q)
+gt_trajectory = generate_trajectory_6d_quat(init_p, init_q, y_delta_p, y_delta_q)
+pred_trajectory = generate_trajectory_6d_quat(init_p, init_q, yhat_delta_p, yhat_delta_q)
 
-gt_trajectory = generate_trajectory_3d(init_l, init_theta, init_psi, y_delta_l, y_delta_theta, y_delta_psi)
-pred_trajectory = generate_trajectory_3d(init_l, init_theta, init_psi, yhat_delta_l, yhat_delta_theta, yhat_delta_psi)
+#gt_trajectory = generate_trajectory_3d(init_l, init_theta, init_psi, y_delta_l, y_delta_theta, y_delta_psi)
+#pred_trajectory = generate_trajectory_3d(init_l, init_theta, init_psi, yhat_delta_l, yhat_delta_theta, yhat_delta_psi)
 
 #fig = plt.figure()
 #ax = fig.gca(projection='3d')
@@ -227,7 +228,8 @@ pred_trajectory = generate_trajectory_3d(init_l, init_theta, init_psi, yhat_delt
 #ani = FuncAnimation(fig, update_trajectories, frames=pred_trajectory.shape[0], interval=100, blit=True)
 #plt.show()
 
-fig = plt.figure()
+matplotlib.rcParams.update({'font.size': 18})
+fig = plt.figure(figsize=[14.4, 10.8])
 ax = fig.gca(projection='3d')
 #ax.plot(gt_trajectory[:, 0], gt_trajectory[:, 1], gt_trajectory[:, 2])
 #ax.plot(pred_trajectory[:, 0], pred_trajectory[:, 1], pred_trajectory[:, 2])
