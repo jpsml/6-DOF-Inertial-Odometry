@@ -80,8 +80,8 @@ for (cur_imu_data_filename, cur_gt_data_filename) in zip(imu_data_filenames, gt_
     #gt_trajectory = generate_trajectory_3d(init_l, init_theta, init_psi, y_delta_l, y_delta_theta, y_delta_psi)
     #pred_trajectory = generate_trajectory_3d(init_l, init_theta, init_psi, yhat_delta_l, yhat_delta_theta, yhat_delta_psi)
 
-    trajectory_rmse = np.sqrt(np.mean(np.square(pred_trajectory - gt_trajectory)))
-    #trajectory_rmse = np.sqrt(np.mean(np.square(pred_trajectory[0:200, :] - gt_trajectory[0:200, :])))
+    trajectory_rmse = np.sqrt(np.mean(np.square(np.linalg.norm(pred_trajectory - gt_trajectory, axis=-1))))
+    #trajectory_rmse = np.sqrt(np.mean(np.square(np.linalg.norm(pred_trajectory[0:200, :] - gt_trajectory[0:200, :], axis=-1))))
 
     print(trajectory_rmse)
 
