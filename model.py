@@ -52,15 +52,15 @@ class CustomMultiLossLayer(Layer):
         assert len(ys_true) == self.nb_outputs and len(ys_pred) == self.nb_outputs
         loss = 0
 
-        for y_true, y_pred, log_var in zip(ys_true, ys_pred, self.log_vars):
-            precision = K.exp(-log_var[0])
-            loss += K.sum(precision * (y_true - y_pred)**2., -1) + log_var[0]
+        #for y_true, y_pred, log_var in zip(ys_true, ys_pred, self.log_vars):
+        #    precision = K.exp(-log_var[0])
+        #    loss += K.sum(precision * (y_true - y_pred)**2., -1) + log_var[0]
 
-        #precision = K.exp(-self.log_vars[0][0])
-        #loss += precision * mean_absolute_error(ys_true[0], ys_pred[0]) + self.log_vars[0][0]
-        #precision = K.exp(-self.log_vars[1][0])
-        #loss += precision * quaternion_mean_multiplicative_error(ys_true[1], ys_pred[1]) + self.log_vars[1][0]
-        ##loss += precision * quaternion_phi_4_error(ys_true[1], ys_pred[1]) + self.log_vars[1][0]
+        precision = K.exp(-self.log_vars[0][0])
+        loss += precision * mean_absolute_error(ys_true[0], ys_pred[0]) + self.log_vars[0][0]
+        precision = K.exp(-self.log_vars[1][0])
+        loss += precision * quaternion_mean_multiplicative_error(ys_true[1], ys_pred[1]) + self.log_vars[1][0]
+        #loss += precision * quaternion_phi_4_error(ys_true[1], ys_pred[1]) + self.log_vars[1][0]
 
         return K.mean(loss)
 
