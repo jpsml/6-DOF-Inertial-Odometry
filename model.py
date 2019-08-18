@@ -34,8 +34,8 @@ def quaternion_mean_multiplicative_error(y_true, y_pred):
 
 # Custom loss layer
 class CustomMultiLossLayer(Layer):
-    #def __init__(self, nb_outputs=2, **kwargs):
-    def __init__(self, nb_outputs=3, **kwargs):
+    def __init__(self, nb_outputs=2, **kwargs):
+    #def __init__(self, nb_outputs=3, **kwargs):
         self.nb_outputs = nb_outputs
         self.is_placeholder = True
         super(CustomMultiLossLayer, self).__init__(**kwargs)
