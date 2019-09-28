@@ -117,6 +117,12 @@ def main():
 
     history = train_model.fit([x_gyro, x_acc, y_delta_p, y_delta_q], epochs=500, batch_size=32, verbose=1, callbacks=[model_checkpoint, tensorboard], validation_split=0.1)
 
+    train_model = load_model('model_checkpoint.hdf5', custom_objects={'CustomMultiLossLayer':CustomMultiLossLayer}, compile=False)
+
+    pred_model = create_pred_model_6d_quat(window_size)
+    pred_model.set_weights(train_model.get_weights()[:-2])
+    pred_model.save('%s.hdf5' % args.output)
+
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
     plt.title('Model loss')
@@ -124,12 +130,6 @@ def main():
     plt.xlabel('Epoch')
     plt.legend(['Train', 'Validation'], loc='upper left')
     plt.show()
-
-    train_model = load_model('model_checkpoint.hdf5', custom_objects={'CustomMultiLossLayer':CustomMultiLossLayer}, compile=False)
-
-    pred_model = create_pred_model_6d_quat(window_size)
-    pred_model.set_weights(train_model.get_weights()[:-2])
-    pred_model.save('%s.hdf5' % args.output)
 
 if __name__ == '__main__':
     main()
