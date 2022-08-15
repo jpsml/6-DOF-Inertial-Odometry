@@ -26,8 +26,8 @@ We provide training code that can use [OxIOD](http://deepio.cs.ox.ac.uk/) or [Eu
 ## Pretrained models
 
 Pretrained models can be downloaded here:
-- [OxIOD](https://drive.google.com/uc?export=download&id=1xBsOJXVUc_cO1ybzJJxBq5L36M49TMsE)
-- [EuRoC MAV](https://drive.google.com/uc?export=download&id=1dXJasJx3jpS6LiqrvP2BpHSCgqLn85nX)
+- [OxIOD](https://cinufpe-my.sharepoint.com/:u:/g/personal/jpsml_cin_ufpe_br/EUxsEHqEIhJMgpu40zAtfpEBPupRKzBCOw9DoJatMijbVA?e=3ByPYC)
+- [EuRoC MAV](https://cinufpe-my.sharepoint.com/:u:/g/personal/jpsml_cin_ufpe_br/EWalL3bS7U5Pkt9TwygzZ7IBc1TDVXLYnVh-6e24TlMPhQ?e=sJtOLk)
 
 ## Testing
 
